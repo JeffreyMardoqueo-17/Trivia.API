@@ -6,18 +6,16 @@ namespace TriviaGame.Api.Data
 {
     public class DapperContext
     {
-        private readonly IConfiguration _configuration;
-        private readonly string _connectionString;
+        private readonly string _connectionString; //la cadena de conexion
 
         public DapperContext(IConfiguration configuration)
         {
-            _configuration = configuration;
-            _connectionString = _configuration.GetConnectionString("DefaultConnection")
+            _connectionString = configuration.GetConnectionString("DefaultConnection") // esta es la que agregue en los secretos de usuario
                 ?? throw new InvalidOperationException("No se encontró la connection string 'DefaultConnection'.");
         }
-
 
         public IDbConnection CreateConnection()
             => new SqlConnection(_connectionString);
     }
+
 }

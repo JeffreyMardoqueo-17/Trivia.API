@@ -98,6 +98,7 @@ GO
 
 
 
+
 -----------SP PARA ELIMINAR PERO TIPO SOFT no el HARD 
 CREATE PROC SP_DeactivateUser
 (
