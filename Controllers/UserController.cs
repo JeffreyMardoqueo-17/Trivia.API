@@ -13,11 +13,16 @@ namespace TriviaGame.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IAuthTokenService _authTokenService;
         private readonly IMapper _mapper;
 
-        public UserController(IUserService userService, IMapper mapper)
+        public UserController(
+            IUserService userService,
+            IAuthTokenService authTokenService,
+            IMapper mapper)
         {
             _userService = userService;
+            _authTokenService = authTokenService;
             _mapper = mapper;
         }
 
@@ -65,6 +70,13 @@ namespace TriviaGame.Api.Controllers
                 var user = await _userService.LoginAsync(dto.Gmail, dto.Password);
 
                 var response = _mapper.Map<UserResponseDto>(user);
+
+                response.Token = _authTokenService.GenerateToken(
+                    user.Id,
+                    user.Gmail,
+                    user.IsActive
+                );
+
                 response.Success = true;
                 response.Message = "Login exitoso";
 
