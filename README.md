@@ -50,6 +50,15 @@ TriviaGame.Api
 └── TriviaGame.Api.csproj
 ```
 
+## Modelado de base de Datos
+
+dark click en el link '<https://dbdocs.io/jeffreymardoqueo260/TriviaGame>' , aqui se podra visualizar el mejor el modelado de la base de datos,con las tablas y el diagrama relacional 
+
+![alt text](image.png)
+
+**Link:** <https://dbdocs.io/jeffreymardoqueo260/TriviaGame>
+**Password:** TriviaGame
+
 ---
 
 ## 📦 Paquetes utilizados
@@ -190,3 +199,5 @@ Get-ChildItem Env:
 ---
 
 ## 📎 Nota final
+
+

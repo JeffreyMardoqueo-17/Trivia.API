@@ -80,5 +80,25 @@ namespace TriviaGame.Api.Data
             using var connection = _context.CreateConnection();
             return await connection.QueryFirstOrDefaultAsync<T>(spName, parameters, commandType: CommandType.StoredProcedure);
         }
+
+        /// <summary>
+        /// Ejecuta un SP que devuelve multiples resultados mapeados a T (puede ser cualquier clase)
+        /// </typeparam>
+        /// <param name="spName">Nombre del SP</param>
+        /// <param name="parameters">parametros de entrada</param>
+        /// <returns>IEnumerable de T</returns>
+        /// <typeparam name="T">Tipo del objeto de resultado (un model o cualquier clase)</typeparam>
+        /// 
+        /// </summary>
+        public async Task<IEnumerable<T>> QueryAsync<T>(string spName, object? parameters = null)
+        {
+            using var connection = _context.CreateConnection();
+            return await connection.QueryAsync<T>(
+                spName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
     }
 }
