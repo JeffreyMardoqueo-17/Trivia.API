@@ -100,5 +100,14 @@ namespace TriviaGame.Api.Data
             );
         }
 
+        public DynamicParameters CreateInputParameters(Dictionary<string, object> inputs)
+        {
+            var parameters = new DynamicParameters();
+            foreach (var kvp in inputs)
+                parameters.Add(kvp.Key, kvp.Value);
+
+            return parameters;
+        }
+
     }
 }

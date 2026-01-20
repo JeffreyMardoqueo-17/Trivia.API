@@ -19,6 +19,8 @@ builder.Services.AddScoped<SpExecutor>();
 // SERVICIOS
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();
+builder.Services.AddScoped<IGameService, GameService>();
+
 builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
 
 

@@ -108,11 +108,14 @@ $env:ConnectionStrings__DefaultConnection="Server=Server;Database=NmbreBD;Truste
 Estas son las variables apra que funcione JWT
 
 ```powershell
-$env:Jwt__Key="ESTE_ES_UN_SECRET_LARGO_Y_DIFICIL_DE_ADIVINAR"
+
+$env:Jwt__Key="contra super segura"
 $env:Jwt__Issuer="TriviaGame.Api"
 $env:Jwt__Audience="TriviaGame.Frontend"
 $env:Jwt__ExpireMinutes="60"
 
+
+$env:ConnectionStrings__DefaultConnection="Server=server;Database=bd;Trusted_Connectionbase=db;Trusted_Connection=True;TrustServerCertificate=True;"
 ```
 
 ---
