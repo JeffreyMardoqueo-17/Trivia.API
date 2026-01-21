@@ -161,31 +161,30 @@ namespace TriviaGame.Api.Services
 
             return count;
         }
-
         public async Task<NextGameQuestion?> GetNextQuestionAsync(int gameSessionId)
         {
-            var rows = (await _spExecutor.QueryAsync<NextQuestionRow>(
-                "SP_GetNextQuestion",
-                new { GameSessionId = gameSessionId }
-            )).ToList();
+            var rows = await _spExecutor.QueryAsync<NextGameQuestionWithAnswer>(
+    "SP_GetNextQuestion",
+    new { GameSessionId = gameSessionId }
+);
 
-            if (!rows.Any())
-                return null;
+            if (!rows.Any()) return null;
 
-            var first = rows.First();
-
-            return new NextGameQuestion
+            var question = new NextGameQuestion
             {
-                QuestionId = first.QuestionId,
-                QuestionText = first.QuestionText,
-                Points = first.Points,
-                TimeLimitSeconds = first.TimeLimitSeconds,
-                Answers = rows.Select(r => new Answer
+                QuestionId = rows.First().QuestionId,
+                QuestionText = rows.First().QuestionText,
+                Points = rows.First().Points,
+                TimeLimitSeconds = rows.First().TimeLimitSeconds,
+                Answers = rows.Select(a => new Answer
                 {
-                    Id = r.AnswerId,
-                    Text = r.AnswerText
+                    Id = a.AnswerId,
+                    Text = a.AnswerText
                 }).ToList()
             };
+
+
+            return question;
         }
 
 

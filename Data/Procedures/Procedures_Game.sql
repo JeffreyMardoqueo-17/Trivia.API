@@ -8,6 +8,13 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    -- 🔥 CERRAR SESIONES EXPIRADAS (90s)
+    UPDATE GameSessions
+    SET EndedAt = GETDATE()
+    WHERE UserId = @UserId
+      AND EndedAt IS NULL
+      AND DATEDIFF(SECOND, StartedAt, GETDATE()) >= MaxDurationSeconds;
+
     IF NOT EXISTS (SELECT 1 FROM Users WHERE Id = @UserId AND IsActive = 1)
         THROW 50001, 'Usuario inválido', 1;
 
@@ -22,12 +29,11 @@ BEGIN
         THROW 50003, 'No hay suficientes preguntas en la categoría', 1;
 
     IF EXISTS (
-    SELECT 1 FROM GameSessions
-    WHERE UserId = @UserId
-    AND EndedAt IS NULL
+        SELECT 1 FROM GameSessions
+        WHERE UserId = @UserId
+          AND EndedAt IS NULL
     )
-    THROW 50004, 'El usuario ya tiene una sesión activa', 1; ----si no el usaurio puede abrir muchas sesiones
-
+        THROW 50004, 'El usuario ya tiene una sesión activa', 1;
 
     BEGIN TRAN;
 
@@ -89,7 +95,7 @@ GO
 CREATE OR ALTER PROC SP_SaveUserAnswer
     @GameSessionId INT,
     @QuestionId INT,
-    @AnswerId INT,
+    @AnswerId INT = NULL,
     @TimeSpentSeconds INT
 AS
 BEGIN
@@ -101,46 +107,40 @@ BEGIN
     )
         THROW 50010, 'Sesión no activa', 1;
 
-    IF NOT EXISTS (
-        SELECT 1 FROM GameSessionQuestions
-        WHERE GameSessionId = @GameSessionId
-          AND QuestionId = @QuestionId
-    )
-        THROW 50011, 'Pregunta no pertenece a la sesión', 1;
-
     IF EXISTS (
         SELECT 1 FROM UserAnswers
         WHERE GameSessionId = @GameSessionId
           AND QuestionId = @QuestionId
     )
-        THROW 50012, 'Pregunta ya respondida', 1;
-
-    IF NOT EXISTS (
-        SELECT 1 FROM Answers
-        WHERE Id = @AnswerId AND QuestionId = @QuestionId
-    )
-        THROW 50013, 'Respuesta inválida', 1;
+        RETURN; -- ⛔ NO ROMPAS EL JUEGO
 
     DECLARE 
-        @IsCorrect BIT,
-        @Points INT,
+        @IsCorrect BIT = 0,
+        @Points INT = 0,
         @TimeLimit INT;
 
-    SELECT @TimeLimit = TimeLimitSeconds
-    FROM GameSessionQuestions
-    WHERE GameSessionId = @GameSessionId
-      AND QuestionId = @QuestionId;
+    SELECT 
+        @TimeLimit = TimeLimitSeconds,
+        @Points = q.Points
+    FROM GameSessionQuestions gsq
+    JOIN Questions q ON q.Id = gsq.QuestionId
+    WHERE gsq.GameSessionId = @GameSessionId
+      AND q.Id = @QuestionId;
 
-    SELECT @IsCorrect = IsCorrect
-    FROM Answers
-    WHERE Id = @AnswerId;
+    IF @AnswerId IS NOT NULL
+    BEGIN
+        SELECT @IsCorrect = IsCorrect
+        FROM Answers
+        WHERE Id = @AnswerId;
 
-    SELECT @Points = Points
-    FROM Questions
-    WHERE Id = @QuestionId;
-
-    IF (@TimeSpentSeconds > @TimeLimit OR @IsCorrect = 0)
+        IF @IsCorrect = 0 OR @TimeSpentSeconds > @TimeLimit
+            SET @Points = 0;
+    END
+    ELSE
+    BEGIN
         SET @Points = 0;
+        SET @IsCorrect = 0;
+    END
 
     INSERT INTO UserAnswers (
         GameSessionId,
@@ -148,7 +148,8 @@ BEGIN
         AnswerId,
         IsCorrect,
         PointsEarned,
-        TimeSpentSeconds
+        TimeSpentSeconds,
+        AnsweredAt
     )
     VALUES (
         @GameSessionId,
@@ -156,13 +157,14 @@ BEGIN
         @AnswerId,
         @IsCorrect,
         @Points,
-        @TimeSpentSeconds
+        @TimeSpentSeconds,
+        GETDATE()
     );
 
     UPDATE GameSessions
     SET 
-        TotalScore = TotalScore + @Points,
-        TimeSpentSeconds = TimeSpentSeconds + @TimeSpentSeconds
+        TotalScore += @Points,
+        TimeSpentSeconds += @TimeSpentSeconds
     WHERE Id = @GameSessionId;
 END
 GO
@@ -217,14 +219,13 @@ BEGIN
 END
 GO
 
-
 CREATE OR ALTER PROC SP_GetNextQuestion
     @GameSessionId INT
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Validar sesión activa
+    -- Validar sesión
     IF NOT EXISTS (
         SELECT 1 
         FROM GameSessions 
@@ -233,11 +234,9 @@ BEGIN
     )
         THROW 50020, 'Sesión inválida o finalizada', 1;
 
+    -- Tomar la próxima pregunta no respondida
     DECLARE @QuestionId INT;
-
-    -- Obtener la siguiente pregunta NO respondida
-    SELECT TOP 1 
-        @QuestionId = q.Id
+    SELECT TOP 1 @QuestionId = q.Id
     FROM GameSessionQuestions gsq
     JOIN Questions q ON q.Id = gsq.QuestionId
     WHERE gsq.GameSessionId = @GameSessionId
@@ -249,30 +248,23 @@ BEGIN
       )
     ORDER BY gsq.Id;
 
-    -- Si no hay más preguntas
     IF @QuestionId IS NULL
-    BEGIN
-        SELECT NULL AS QuestionId;
         RETURN;
-    END
 
-    -- RESULTSET 1: Pregunta
+    -- Traer pregunta + respuestas, evitando duplicados
     SELECT 
         q.Id AS QuestionId,
         q.Text AS QuestionText,
         q.Points,
-        gsq.TimeLimitSeconds
+        gsq.TimeLimitSeconds,
+        a.Id AS AnswerId,
+        a.Text AS AnswerText
     FROM Questions q
     JOIN GameSessionQuestions gsq 
         ON gsq.QuestionId = q.Id
-    WHERE q.Id = @QuestionId;
-
-    -- RESULTSET 2: Respuestas
-    SELECT 
-        a.Id AS AnswerId,
-        a.Text AS AnswerText
-    FROM Answers a
-    WHERE a.QuestionId = @QuestionId;
-
+       AND gsq.GameSessionId = @GameSessionId -- solo la fila de la sesión actual
+    JOIN Answers a ON a.QuestionId = q.Id
+    WHERE q.Id = @QuestionId
+    ORDER BY a.Id;
 END
 GO

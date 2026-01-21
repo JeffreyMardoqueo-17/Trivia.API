@@ -52,7 +52,6 @@ if (string.IsNullOrWhiteSpace(issuer))
 
 if (string.IsNullOrWhiteSpace(audience))
     throw new Exception("JWT Audience no configurado");
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -75,13 +74,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
             ClockSkew = TimeSpan.Zero
         };
+
+        // 🔥 ESTO ES LO QUE TE FALTABA
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/gamehub"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
-    builder.Services.AddSignalR();
 
-// Console.WriteLine($"JWT KEY: {jwtKey}");
-// Console.WriteLine($"ISSUER: {issuer}");
-// Console.WriteLine($"AUDIENCE: {audience}");
+builder.Services.AddSignalR();
 
+Console.WriteLine($"JWT KEY: {jwtKey}");
+Console.WriteLine($"ISSUER: {issuer}");
+Console.WriteLine($"AUDIENCE: {audience}");
+Console.WriteLine($"ConnectionString: {builder.Configuration.GetConnectionString("DefaultConnection")}");
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

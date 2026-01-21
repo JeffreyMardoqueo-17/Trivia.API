@@ -8,9 +8,8 @@ namespace TriviaGame.Api.Models
     public class GameSessionQuestion
     {
         public int Id { get; set; }
+        public int GameSessionId { get; set; }
         public int QuestionId { get; set; }
-        public string QuestionText { get; set; } = string.Empty;
-        public int Points { get; set; }
         public int TimeLimitSeconds { get; set; }
 
         public GameSession GameSession { get; set; } = null!;

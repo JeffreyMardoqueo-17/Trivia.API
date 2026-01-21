@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace TriviaGame.Api.DTOs.Game
 {
-    public class AnswerDto
+    public class AnswerOptionDto
     {
-         public int AnswerId { get; set; }
+        public int AnswerId { get; set; }
         public string AnswerText { get; set; } = string.Empty;
-        public bool IsCorrect { get; set; }
+
     }
 }
