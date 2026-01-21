@@ -33,9 +33,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendLocal", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5227")
+            .WithOrigins("https://localhost:5227")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 // CONFIGURAICON DE JWT
@@ -75,6 +76,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
+    builder.Services.AddSignalR();
+
 // Console.WriteLine($"JWT KEY: {jwtKey}");
 // Console.WriteLine($"ISSUER: {issuer}");
 // Console.WriteLine($"AUDIENCE: {audience}");
@@ -94,6 +97,7 @@ app.UseCors("FrontendLocal");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<GameHub>("/gamehub");
 
 app.MapControllers();
 app.Run();

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TriviaGame.Api.DTOs.Category;
 using TriviaGame.Api.Services.Interfaces;
 
 namespace TriviaGame.Api.Controllers
@@ -26,23 +27,23 @@ namespace TriviaGame.Api.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<DTOs.Category.CategoryResponseDTO>>> GetAllCategories()
+        public async Task<ActionResult<IEnumerable<CategoryResponseDTO>>> GetAllCategories()
         {
             var categories = await _categoriesService.GetAllCategoriesAsync();
             if (categories == null || !categories.Any())
                 return NotFound();
-            var categoriesDto = _mapper.Map<IEnumerable<DTOs.Category.CategoryResponseDTO>>(categories);
+            var categoriesDto = _mapper.Map<IEnumerable<CategoryResponseDTO>>(categories);
             return Ok(categoriesDto);
         }
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<ActionResult<DTOs.Category.CategoryResponseDTO>> GetCategoryById(int id)
+        public async Task<ActionResult<CategoryResponseDTO>> GetCategoryById(int id)
         {
             var category = await _categoriesService.GetCategoryByIdAsync(id);
             if (category == null)
                 return NotFound();
-            var categoryDto = _mapper.Map<DTOs.Category.CategoryResponseDTO>(category);
+            var categoryDto = _mapper.Map<CategoryResponseDTO>(category);
             return Ok(categoryDto);
         }
     }

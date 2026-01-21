@@ -5,15 +5,13 @@ using System.Threading.Tasks;
 
 namespace TriviaGame.Api.Models
 {
-    public class GameSessionQuestion
+    public class NextQuestionRow
     {
-        public int Id { get; set; }
         public int QuestionId { get; set; }
-        public string QuestionText { get; set; } = string.Empty;
+        public string QuestionText { get; set; } = "";
         public int Points { get; set; }
         public int TimeLimitSeconds { get; set; }
-
-        public GameSession GameSession { get; set; } = null!;
-        public Question Question { get; set; } = null!;
+        public int AnswerId { get; set; }
+        public string AnswerText { get; set; } = "";
     }
 }

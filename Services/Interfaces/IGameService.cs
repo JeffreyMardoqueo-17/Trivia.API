@@ -23,5 +23,9 @@ namespace TriviaGame.Api.Services.Interfaces
 
         // Obtiene el historial de juegos de un usuario
         Task<IEnumerable<GameSession>> GetUserGameHistoryAsync(int userId);
+        
+        // Obtiene el conteo de preguntas respondidas en una sesión de juego
+        Task<int> GetAnsweredCountAsync(int gameSessionId);
+        Task<NextGameQuestion?> GetNextQuestionAsync(int gameSessionId);
     }
 }

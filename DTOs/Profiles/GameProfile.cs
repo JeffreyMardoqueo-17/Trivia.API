@@ -19,10 +19,10 @@ namespace TriviaGame.Api.DTOs.Profiles
             // GameSessionQuestion -> GameQuestionDto
             // -------------------------
             CreateMap<GameSessionQuestion, GameQuestionDto>()
-                .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.QuestionId))
-                .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.Question.Text))
-                .ForMember(dest => dest.Points, opt => opt.MapFrom(src => src.Question.Points))
-                .ForMember(dest => dest.TimeLimitSeconds, opt => opt.MapFrom(src => src.TimeLimitSeconds));
+             .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.QuestionId))
+             .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.QuestionText)) // usa la columna del SP
+             .ForMember(dest => dest.Points, opt => opt.MapFrom(src => src.Points))
+             .ForMember(dest => dest.TimeLimitSeconds, opt => opt.MapFrom(src => src.TimeLimitSeconds));
 
             // -------------------------
             // Answer -> AnswerDto
@@ -40,8 +40,9 @@ namespace TriviaGame.Api.DTOs.Profiles
             // GameSession -> GameHistoryDto
             // -------------------------
             CreateMap<GameSession, GameHistoryDto>()
-                .ForMember(dest => dest.GameSessionId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Categories.Name));
+      .ForMember(dest => dest.GameSessionId, opt => opt.MapFrom(src => src.Id))
+      .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.CategoryName));
+
         }
     }
 }

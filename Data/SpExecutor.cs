@@ -109,5 +109,18 @@ namespace TriviaGame.Api.Data
             return parameters;
         }
 
+        public async Task<SqlMapper.GridReader> QueryMultipleAsync(
+    string spName,
+    object? parameters = null
+)
+        {
+            var connection = _context.CreateConnection();
+            return await connection.QueryMultipleAsync(
+                spName,
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
     }
 }

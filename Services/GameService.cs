@@ -144,5 +144,51 @@ namespace TriviaGame.Api.Services
             return result;
         }
 
+        // ----------------------------
+        // Obtiene el conteo de preguntas respondidas en una sesión de juego
+        // ----------------------------
+        public async Task<int> GetAnsweredCountAsync(int gameSessionId)
+        {
+            var inputs = new Dictionary<string, object>
+    {
+        { "@GameSessionId", gameSessionId }
+    };
+
+            var parameters = _spExecutor.CreateInputParameters(inputs);
+
+            // QuerySingleAsync devuelve un solo valor
+            var count = await _spExecutor.QuerySingleAsync<int>("SP_GetAnsweredCount", parameters);
+
+            return count;
+        }
+
+        public async Task<NextGameQuestion?> GetNextQuestionAsync(int gameSessionId)
+        {
+            var rows = (await _spExecutor.QueryAsync<NextQuestionRow>(
+                "SP_GetNextQuestion",
+                new { GameSessionId = gameSessionId }
+            )).ToList();
+
+            if (!rows.Any())
+                return null;
+
+            var first = rows.First();
+
+            return new NextGameQuestion
+            {
+                QuestionId = first.QuestionId,
+                QuestionText = first.QuestionText,
+                Points = first.Points,
+                TimeLimitSeconds = first.TimeLimitSeconds,
+                Answers = rows.Select(r => new Answer
+                {
+                    Id = r.AnswerId,
+                    Text = r.AnswerText
+                }).ToList()
+            };
+        }
+
+
+
     }
 }

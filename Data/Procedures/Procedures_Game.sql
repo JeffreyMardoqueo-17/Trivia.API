@@ -21,6 +21,14 @@ BEGIN
     ) < 3
         THROW 50003, 'No hay suficientes preguntas en la categoría', 1;
 
+    IF EXISTS (
+    SELECT 1 FROM GameSessions
+    WHERE UserId = @UserId
+    AND EndedAt IS NULL
+    )
+    THROW 50004, 'El usuario ya tiene una sesión activa', 1; ----si no el usaurio puede abrir muchas sesiones
+
+
     BEGIN TRAN;
 
     DECLARE @GameSessionId INT;
@@ -68,11 +76,12 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT 
-        Id AS AnswerId,
-        Text AS AnswerText
-    FROM Answers
-    WHERE QuestionId = @QuestionId;
+ SELECT 
+    Id AS AnswerId,
+    Text AS AnswerText
+FROM Answers
+WHERE QuestionId = @QuestionId;
+
 END
 GO
 
@@ -178,17 +187,92 @@ CREATE OR ALTER PROC SP_GetUserGameHistory
 AS
 BEGIN
     SET NOCOUNT ON;
+SELECT 
+    gs.Id AS GameSessionId,
+    c.Name AS CategoryName,  -- <- renombrado
+    gs.TotalScore,
+    gs.TimeSpentSeconds,
+    gs.StartedAt,
+    gs.EndedAt
+FROM GameSessions gs
+JOIN Categories c ON c.Id = gs.CategoryId
+WHERE gs.UserId = @UserId
+ORDER BY gs.StartedAt DESC;
+END
+GO
 
+
+USE TriviaGameDB
+GO
+
+CREATE OR ALTER PROC SP_GetAnsweredCount
+    @GameSessionId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT COUNT(*) AS AnsweredCount
+    FROM UserAnswers
+    WHERE GameSessionId = @GameSessionId;
+END
+GO
+
+
+CREATE OR ALTER PROC SP_GetNextQuestion
+    @GameSessionId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Validar sesión activa
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM GameSessions 
+        WHERE Id = @GameSessionId 
+          AND EndedAt IS NULL
+    )
+        THROW 50020, 'Sesión inválida o finalizada', 1;
+
+    DECLARE @QuestionId INT;
+
+    -- Obtener la siguiente pregunta NO respondida
+    SELECT TOP 1 
+        @QuestionId = q.Id
+    FROM GameSessionQuestions gsq
+    JOIN Questions q ON q.Id = gsq.QuestionId
+    WHERE gsq.GameSessionId = @GameSessionId
+      AND NOT EXISTS (
+          SELECT 1 
+          FROM UserAnswers ua
+          WHERE ua.GameSessionId = @GameSessionId
+            AND ua.QuestionId = q.Id
+      )
+    ORDER BY gsq.Id;
+
+    -- Si no hay más preguntas
+    IF @QuestionId IS NULL
+    BEGIN
+        SELECT NULL AS QuestionId;
+        RETURN;
+    END
+
+    -- RESULTSET 1: Pregunta
     SELECT 
-        gs.Id AS GameSessionId,
-        c.Name AS Category,
-        gs.TotalScore,
-        gs.TimeSpentSeconds,
-        gs.StartedAt,
-        gs.EndedAt
-    FROM GameSessions gs
-    JOIN Categories c ON c.Id = gs.CategoryId
-    WHERE gs.UserId = @UserId
-    ORDER BY gs.StartedAt DESC;
+        q.Id AS QuestionId,
+        q.Text AS QuestionText,
+        q.Points,
+        gsq.TimeLimitSeconds
+    FROM Questions q
+    JOIN GameSessionQuestions gsq 
+        ON gsq.QuestionId = q.Id
+    WHERE q.Id = @QuestionId;
+
+    -- RESULTSET 2: Respuestas
+    SELECT 
+        a.Id AS AnswerId,
+        a.Text AS AnswerText
+    FROM Answers a
+    WHERE a.QuestionId = @QuestionId;
+
 END
 GO
