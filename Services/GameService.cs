@@ -1,14 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dapper;
 using TriviaGame.Api.Data;
 using TriviaGame.Api.Models;
+using TriviaGame.Api.Models.DTOs;
 using TriviaGame.Api.Services.Interfaces;
-using Dapper;
 
 namespace TriviaGame.Api.Services
 {
-    public class GameService : IGameService
+    public class GameService  : IGameService
     {
         private readonly SpExecutor _spExecutor;
 
@@ -17,177 +17,168 @@ namespace TriviaGame.Api.Services
             _spExecutor = spExecutor;
         }
 
-        // ----------------------------
-        // Inicia una sesion de juego 
-        // ----------------------------
-        public async Task<int> StartGameAsync(int userId, int categoryId)
+        /// <summary>
+        /// Inicia una nueva sesión de juego para un usuario en una categoría
+        /// Retorna el GameSessionId (0 si falla)
+        /// </summary>
+        public async Task<int> StartGameSessionAsync(int userId, int categoryId)
         {
-            // Diccionario con los parámetros de entrada
-            var inputs = new Dictionary<string, object>
-            {
-                { "@UserId", userId }, //id del usuario logueado
-                { "@CategoryId", categoryId } //id de la categoría seleccionada
-            };
+            var parameters = new DynamicParameters();
+            parameters.Add("@UserId", userId);
+            parameters.Add("@CategoryId", categoryId);
 
-            // Genera el DynamicParameters usando el helper de SpExecutor
-            var parameters = _spExecutor.CreateInputParameters(inputs);
-
-            // Ejecuta el SP y obtiene el Id de la sesión
-            var result = await _spExecutor.QuerySingleAsync<int>("SP_StartGameSession", parameters);
-
-            if (result == 0)
-                throw new Exception("No se pudo iniciar la sesión de juego.");
-
-            return result;
-        }
-
-        // Obtiene las preguntas de una sesión de juego
-        // ----------------------------
-        public async Task<IEnumerable<GameSessionQuestion>> GetGameQuestionsAsync(int gameSessionId)
-        {
-            // Diccionario con parámetros de entrada
-            var inputs = new Dictionary<string, object>
-                {
-                    { "@GameSessionId", gameSessionId }
-                };
-
-            // Genera DynamicParameters usando el helper de SpExecutor
-            var parameters = _spExecutor.CreateInputParameters(inputs);
-
-            // Ejecuta el SP y retorna la lista de preguntas
-            var questions = await _spExecutor.QueryAsync<GameSessionQuestion>(
-                "SP_GetGameQuestions",
+            var result = await _spExecutor.QuerySingleAsync<Dictionary<string, object>>(
+                "SP_StartGameSession",
                 parameters
             );
 
-            return questions;
+            if (result != null && result.ContainsKey("GameSessionId"))
+                return (int)result["GameSessionId"];
+            return 0;
         }
 
-        // ----------------------------
-        // Obtiene las respuestas de una pregunta específica
-        // ----------------------------
-        public async Task<IEnumerable<Answer>> GetQuestionAnswersAsync(int questionId)
+        /// <summary>
+        /// Obtiene la siguiente pregunta no respondida junto con sus respuestas
+        /// Retorna null si ya no hay preguntas
+        /// </summary>
+        public async Task<QuestionWithAnswers?> GetNextQuestionAsync(int gameSessionId)
         {
-            // Diccionario con parámetros de entrada
-            var inputs = new Dictionary<string, object>
-            {
-                { "@QuestionId", questionId }
-            };
-
-            // Genera DynamicParameters usando el helper de SpExecutor
-            var parameters = _spExecutor.CreateInputParameters(inputs);
-
-            // Ejecuta el SP y retorna la lista de respuestas
-            var answers = await _spExecutor.QueryAsync<Answer>(
-                "SP_GetQuestionAnswers",
-                parameters
+            var result = await _spExecutor.QueryAsync<NextQuestionRaw>(
+                "SP_GetNextQuestion",
+                new { GameSessionId = gameSessionId }
             );
 
-            return answers;
-        }
+            if (result == null)
+                return null;
 
-        // ----------------------------
-        // Guarda la respuesta del usuario en una sesión de juego
-        // ----------------------------
-        public async Task SaveUserAnswerAsync(int gameSessionId, int questionId, int answerId, int timeSpentSeconds)
-        {
-            // Diccionario con parámetros de entrada
-            var inputs = new Dictionary<string, object>
+            // Mapear la primera pregunta y sus respuestas
+            QuestionWithAnswers? question = null;
+
+            foreach (var row in result)
             {
-                { "@GameSessionId", gameSessionId },
-                { "@QuestionId", questionId },
-                { "@AnswerId", answerId },
-                { "@TimeSpentSeconds", timeSpentSeconds }
-            };
+                if (row.QuestionId == null)
+                    return null; // ya no hay más preguntas
 
-            // Genera DynamicParameters usando el helper de SpExecutor
-            var parameters = _spExecutor.CreateInputParameters(inputs);
-
-            // Ejecuta el SP
-            await _spExecutor.ExecuteWithOutputAsync("SP_SaveUserAnswer", parameters);
-        }
-        // ----------------------------
-        // Finaliza la sesión de juego
-        // ----------------------------
-        public async Task EndGameAsync(int gameSessionId)
-        {
-            // Diccionario con parámetros de entrada
-            var inputs = new Dictionary<string, object>
-            {
-                { "@GameSessionId", gameSessionId }
-            };
-
-            // Genera DynamicParameters usando el helper de SpExecutor
-            var parameters = _spExecutor.CreateInputParameters(inputs);
-
-            // Ejecuta el SP
-            await _spExecutor.ExecuteWithOutputAsync("SP_EndGameSession", parameters);
-        }
-
-        // ----------------------------
-        // Obtiene el historial de juegos de un usuario
-        // ----------------------------
-        public async Task<IEnumerable<GameSession>> GetUserGameHistoryAsync(int userId)
-        {
-            // Diccionario con parámetros de entrada
-            var inputs = new Dictionary<string, object>
-            {
-                { "@UserId", userId }
-            };
-
-            // Genera DynamicParameters usando el helper de SpExecutor
-            var parameters = _spExecutor.CreateInputParameters(inputs);
-
-            // Ejecuta el SP y mapea el resultado a GameSession
-            var result = await _spExecutor.QueryAsync<GameSession>("SP_GetUserGameHistory", parameters);
-
-            return result;
-        }
-
-        // ----------------------------
-        // Obtiene el conteo de preguntas respondidas en una sesión de juego
-        // ----------------------------
-        public async Task<int> GetAnsweredCountAsync(int gameSessionId)
-        {
-            var inputs = new Dictionary<string, object>
-    {
-        { "@GameSessionId", gameSessionId }
-    };
-
-            var parameters = _spExecutor.CreateInputParameters(inputs);
-
-            // QuerySingleAsync devuelve un solo valor
-            var count = await _spExecutor.QuerySingleAsync<int>("SP_GetAnsweredCount", parameters);
-
-            return count;
-        }
-        public async Task<NextGameQuestion?> GetNextQuestionAsync(int gameSessionId)
-        {
-            var rows = await _spExecutor.QueryAsync<NextGameQuestionWithAnswer>(
-    "SP_GetNextQuestion",
-    new { GameSessionId = gameSessionId }
-);
-
-            if (!rows.Any()) return null;
-
-            var question = new NextGameQuestion
-            {
-                QuestionId = rows.First().QuestionId,
-                QuestionText = rows.First().QuestionText,
-                Points = rows.First().Points,
-                TimeLimitSeconds = rows.First().TimeLimitSeconds,
-                Answers = rows.Select(a => new Answer
+                if (question == null)
                 {
-                    Id = a.AnswerId,
-                    Text = a.AnswerText
-                }).ToList()
-            };
+                    question = new QuestionWithAnswers
+                    {
+                        QuestionId = row.QuestionId.Value,
+                        QuestionText = row.QuestionText!,
+                        Points = row.Points,
+                        TimeLimitSeconds = row.TimeLimitSeconds
+                    };
+                }
 
+                if (row.AnswerId.HasValue)
+                {
+                    question.Answers.Add(new Answer
+                    {
+                        Id = row.AnswerId.Value,
+                        QuestionId = row.QuestionId.Value,
+                        Text = row.AnswerText!,
+                        IsCorrect = false // no revelamos si es correcta aún
+                    });
+                }
+            }
 
             return question;
         }
 
+     public async Task<AnswerResultDto> SaveUserAnswerAsync(int gameSessionId, int questionId, int answerId, int timeSpentSeconds)
+        {
+            // Traer la respuesta correcta
+            var correctAnswer = await _spExecutor.QuerySingleAsync<Answer>(
+                "SELECT TOP 1 * FROM Answers WHERE QuestionId = @QuestionId AND IsCorrect = 1",
+                new { QuestionId = questionId }
+            );
 
+            bool isCorrect = correctAnswer != null && correctAnswer.Id == answerId;
+            int pointsEarned = isCorrect ? 10 : 0; // cada respuesta correcta 10 puntos
 
+            // Guardar la respuesta del usuario
+            var parameters = new DynamicParameters();
+            parameters.Add("@GameSessionId", gameSessionId);
+            parameters.Add("@QuestionId", questionId);
+            parameters.Add("@AnswerId", answerId);
+            parameters.Add("@TimeSpentSeconds", timeSpentSeconds);
+            parameters.Add("@IsCorrect", isCorrect);
+            parameters.Add("@PointsEarned", pointsEarned);
+
+            await _spExecutor.QuerySingleAsync<object>("SP_SaveUserAnswer", parameters);
+
+            return new AnswerResultDto
+            {
+                IsCorrect = isCorrect,
+                PointsEarned = pointsEarned
+            };
+        }
+
+        public async Task<GameOverDto> EndGameSessionAsync(int gameSessionId)
+        {
+            // Finalizar la sesión
+            await _spExecutor.QuerySingleAsync<object>("SP_EndGameSession", new { GameSessionId = gameSessionId });
+
+            // Traer puntaje total de la sesión
+            var totalScore = await _spExecutor.QuerySingleAsync<int>(
+                @"SELECT ISNULL(SUM(PointsEarned),0) 
+                  FROM UserAnswers 
+                  WHERE GameSessionId = @GameSessionId",
+                new { GameSessionId = gameSessionId }
+            );
+
+            // Traer ranking general
+            var ranking = await _spExecutor.QueryAsync<RankingDto>("SP_GetRanking");
+
+            return new GameOverDto
+            {
+                TotalScore = totalScore,
+                Ranking = ranking.ToList()
+            };
+        }
+    
+    public async Task<GameSession?> GetGameSessionByIdAsync(int gameSessionId)
+{
+    return await _spExecutor.QuerySingleAsync<GameSession>(
+        @"SELECT * FROM GameSessions WHERE Id = @GameSessionId",
+        new { GameSessionId = gameSessionId }
+    );
+}
+
+        /// <summary>
+        /// Obtiene el ranking general del juego (usuarios ordenados por puntos acumulados)
+        /// </summary>
+        public async Task<IEnumerable<RankingItem>> GetRankingAsync()
+        {
+            return await _spExecutor.QueryAsync<RankingItem>("SP_GetRanking");
+        }
+
+        #region Helper Models para mapping interno
+        private class NextQuestionRaw
+        {
+            public int? QuestionId { get; set; }
+            public string? QuestionText { get; set; }
+            public int Points { get; set; }
+            public int TimeLimitSeconds { get; set; }
+            public int? AnswerId { get; set; }
+            public string? AnswerText { get; set; }
+        }
+
+        public class QuestionWithAnswers
+        {
+            public int QuestionId { get; set; }
+            public string QuestionText { get; set; } = string.Empty;
+            public int Points { get; set; }
+            public int TimeLimitSeconds { get; set; }
+            public List<Answer> Answers { get; set; } = new List<Answer>();
+        }
+
+        public class RankingItem
+        {
+            public int UserId { get; set; }
+            public string Gmail { get; set; } = string.Empty;
+            public int TotalPoints { get; set; }
+        }
+        #endregion
     }
 }

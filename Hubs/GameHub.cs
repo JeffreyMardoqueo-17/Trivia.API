@@ -1,72 +1,99 @@
 using Microsoft.AspNetCore.SignalR;
-using TriviaGame.Api.DTOs.Game;
-using TriviaGame.Api.Models;
+using TriviaGame.Api.Models.DTOs;
 using TriviaGame.Api.Services.Interfaces;
 using AutoMapper;
 
-public class GameHub : Hub
+namespace TriviaGame.Api.Hubs
 {
-    private readonly IGameService _gameService;
-    private readonly IMapper _mapper;
-
-    public GameHub(IGameService gameService, IMapper mapper)
+    public class GameHub : Hub
     {
-        _gameService = gameService;
-        _mapper = mapper;
-    }
+        private readonly IGameService _gameService;
+        private readonly IMapper _mapper;
 
-    // ▶️ INICIAR JUEGO
-    public async Task StartGame(int gameSessionId)
-    {
-        await SendNextQuestion(gameSessionId);
-    }
-
-    // ▶️ RESPONDER PREGUNTA
-    public async Task SubmitAnswer(
-        int gameSessionId,
-        int questionId,
-        int? answerId, // nullable, para cuando el tiempo se agote
-        int timeSpentSeconds
-    )
-    {
-        // Guardar la respuesta del usuario
-        await _gameService.SaveUserAnswerAsync(
-            gameSessionId,
-            questionId,
-            answerId ?? 0, // si es null, se envía 0
-            timeSpentSeconds
-        );
-
-        // Enviar la siguiente pregunta o terminar juego
-        await SendNextQuestion(gameSessionId);
-    }
-
-    // ▶️ FLUJO CENTRAL DEL JUEGO
-    // ▶️ FLUJO CENTRAL DEL JUEGO
-    private async Task SendNextQuestion(int gameSessionId)
-    {
-        var question = await _gameService.GetNextQuestionAsync(gameSessionId);
-
-        if (question == null)
+        public GameHub(IGameService gameService, IMapper mapper)
         {
-            await _gameService.EndGameAsync(gameSessionId);
-            await Clients.Caller.SendAsync("GameEnded");
-            return;
+            _gameService = gameService;
+            _mapper = mapper;
         }
 
-        // ✅ Usar AutoMapper para mapear la pregunta y sus respuestas
-        var dto = _mapper.Map<NextGameQuestionDto>(question);
+        /// <summary>
+        /// Inicia una nueva sesión de juego para un usuario en una categoría
+        /// Devuelve el GameSessionDto al cliente
+        /// </summary>
+        public async Task<GameSessionDto?> StartGameSession(int userId, int categoryId)
+        {
+            var gameSessionId = await _gameService.StartGameSessionAsync(userId, categoryId);
+            if (gameSessionId == 0) return null;
 
-        // 🔍 LOG para debug → aquí verificamos lo que realmente se envía
-        Console.WriteLine("📩 SendNextQuestion DTO RAW: " + System.Text.Json.JsonSerializer.Serialize(dto));
+            // Obtenemos la sesión para mapear
+            // Si tu SP StartGameSession ya devuelve todos los campos, úsalo; sino crea un método en service para obtener GameSession
+            // Aquí asumimos que el service tiene un método GetGameSessionByIdAsync
+            var gameSession = await _gameService.GetGameSessionByIdAsync(gameSessionId);
+            return _mapper.Map<GameSessionDto>(gameSession);
+        }
 
-        // Debug para saber qué se envía
-        Console.WriteLine($"📩 Enviando pregunta {dto.QuestionId}: {dto.QuestionText}");
-        dto.Answers.ForEach(a =>
-            Console.WriteLine($"    ➡️ Respuesta {a.AnswerId}: {a.AnswerText}")
-        );
+        /// <summary>
+        /// Obtiene la siguiente pregunta de la sesión en curso
+        /// </summary>
+        public async Task<QuestionDto?> GetNextQuestion(int gameSessionId)
+        {
+            var questionInternal = await _gameService.GetNextQuestionAsync(gameSessionId);
+            if (questionInternal == null) return null;
 
-        await Clients.Caller.SendAsync("ReceiveQuestion", dto);
+            // Mapear a DTO
+            var questionDto = _mapper.Map<QuestionDto>(questionInternal);
+            return questionDto;
+        }
+
+        /// <summary>
+        /// Guarda la respuesta del usuario
+        /// Devuelve si fue correcta y los puntos obtenidos
+        /// </summary>
+        public async Task<AnswerResultDto> SubmitAnswer(SubmitAnswerDto submitAnswer)
+        {
+            // Guardamos la respuesta usando el service
+            var result = await _gameService.SaveUserAnswerAsync(
+                submitAnswer.GameSessionId,
+                submitAnswer.QuestionId,
+                submitAnswer.AnswerId,
+                submitAnswer.TimeSpentSeconds
+            );
+
+            // Mapear a DTO para enviar al cliente
+            var answerResult = new AnswerResultDto
+            {
+                IsCorrect = result.IsCorrect,
+                PointsEarned = result.PointsEarned,
+                TimeSpentSeconds = submitAnswer.TimeSpentSeconds
+            };
+
+            return answerResult;
+        }
+
+        /// <summary>
+        /// Finaliza la sesión de juego y devuelve el puntaje final + ranking
+        /// </summary>
+        public async Task<GameOverDto> EndGame(int gameSessionId)
+        {
+            var gameOverInternal = await _gameService.EndGameSessionAsync(gameSessionId);
+            return _mapper.Map<GameOverDto>(gameOverInternal);
+        }
+
+        /// <summary>
+        /// Devuelve el ranking general de todos los usuarios
+        /// </summary>
+        public async Task<List<RankingDto>> GetRanking()
+        {
+            var rankingInternal = await _gameService.GetRankingAsync();
+            return _mapper.Map<List<RankingDto>>(rankingInternal);
+        }
     }
 
+    // DTO de resultado de respuesta que enviaremos al cliente
+    public class AnswerResultDto
+    {
+        public bool IsCorrect { get; set; }
+        public int PointsEarned { get; set; }
+        public int TimeSpentSeconds { get; set; }
+    }
 }

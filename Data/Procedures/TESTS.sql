@@ -1,6 +1,6 @@
 
 
-contraseña 
+contraseï¿½a 
 ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae
 
 --------------------PRUEBA DE REGISTRO 
@@ -54,3 +54,15 @@ EXEC dbo.SP_DeactivateUser
     @ResponseMessage = @Response OUTPUT;
 
 SELECT @Success AS Success, @Response AS ResponseMessage;
+
+
+
+
+
+EXEC SP_GetUserGameHistory @UserId = 1
+
+UPDATE GameSessions 
+SET EndedAt = GETDATE() WHERE Id = 19
+
+
+EXEC SP_GetNextQuestion @GameSessionId = 14

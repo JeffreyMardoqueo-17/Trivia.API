@@ -5,6 +5,7 @@ using TriviaGame.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TriviaGame.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,6 @@ builder.Services.AddScoped<SpExecutor>();
 // SERVICIOS
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();
-builder.Services.AddScoped<IGameService, GameService>();
 
 builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
 

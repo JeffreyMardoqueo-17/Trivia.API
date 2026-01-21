@@ -1,31 +1,49 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TriviaGame.Api.Models; // Asegúrate que las clases estén en este namespace
+using TriviaGame.Api.Hubs;
+using TriviaGame.Api.Models;
+using TriviaGame.Api.Models.DTOs;
+using TriviaGame.Api.Services;
 
 namespace TriviaGame.Api.Services.Interfaces
 {
     public interface IGameService
     {
-        // Inicia una sesión de juego y retorna el Id de la sesión creada
-        Task<int> StartGameAsync(int userId, int categoryId);
+        /// <summary>
+        /// Inicia una nueva sesión de juego para un usuario en una categoría
+        /// </summary>
+        /// <param name="userId">ID del usuario</param>
+        /// <param name="categoryId">ID de la categoría</param>
+        /// <returns>ID de la sesión creada, 0 si falla</returns>
+        Task<int> StartGameSessionAsync(int userId, int categoryId);
 
-        // Obtiene las preguntas de una sesión de juego
-        Task<IEnumerable<GameSessionQuestion>> GetGameQuestionsAsync(int gameSessionId);
+        /// <summary>
+        /// Obtiene la siguiente pregunta no respondida junto con sus respuestas
+        /// </summary>
+        /// <param name="gameSessionId">ID de la sesión de juego</param>
+        /// <returns>Objeto con la pregunta y sus respuestas, o null si no hay más preguntas</returns>
+        Task<GameService.QuestionWithAnswers?> GetNextQuestionAsync(int gameSessionId);
 
-        // Obtiene las respuestas de una pregunta específica
-        Task<IEnumerable<Answer>> GetQuestionAnswersAsync(int questionId);
+        /// <summary>
+        /// Guarda la respuesta del usuario a una pregunta
+        /// </summary>
+        /// <param name="gameSessionId">ID de la sesión de juego</param>
+        /// <param name="questionId">ID de la pregunta</param>
+        /// <param name="answerId">ID de la respuesta elegida</param>
+        /// <param name="timeSpentSeconds">Tiempo usado para responder</param>
+        Task<TriviaGame.Api.Models.DTOs.AnswerResultDto> SaveUserAnswerAsync(int gameSessionId, int questionId, int answerId, int timeSpentSeconds);
 
-        // Guarda la respuesta del usuario en una sesión de juego
-        Task SaveUserAnswerAsync(int gameSessionId, int questionId, int answerId, int timeSpentSeconds);
+        /// <summary>
+        /// Finaliza la sesión de juego
+        /// </summary>
+        /// <param name="gameSessionId">ID de la sesión</param>
+        Task<GameOverDto> EndGameSessionAsync(int gameSessionId);
 
-        // Finaliza la sesión de juego
-        Task EndGameAsync(int gameSessionId);
+        /// <summary>
+        /// Obtiene el ranking general del juego (usuarios ordenados por puntos acumulados)
+        /// </summary>
+        Task<IEnumerable<GameService.RankingItem>> GetRankingAsync();
 
-        // Obtiene el historial de juegos de un usuario
-        Task<IEnumerable<GameSession>> GetUserGameHistoryAsync(int userId);
-        
-        // Obtiene el conteo de preguntas respondidas en una sesión de juego
-        Task<int> GetAnsweredCountAsync(int gameSessionId);
-        Task<NextGameQuestion?> GetNextQuestionAsync(int gameSessionId);
+          Task<GameSession?> GetGameSessionByIdAsync(int gameSessionId);
     }
 }
