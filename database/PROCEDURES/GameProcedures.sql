@@ -59,6 +59,18 @@ BEGIN
     WHERE Id = @GameSessionId;
 END
 GO
+CREATE PROC SP_GetCorrectAnswerByQuestion
+    @QuestionId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1 *
+    FROM Answers
+    WHERE QuestionId = @QuestionId
+      AND IsCorrect = 1;
+END
+
 
 
 
@@ -224,3 +236,56 @@ BEGIN
     ORDER BY TotalPoints DESC;
 END
 GO
+
+
+
+CREATE OR ALTER PROC SP_SaveUserAnswer
+    @GameSessionId INT,
+    @QuestionId INT,
+    @AnswerId INT,
+    @TimeSpentSeconds INT,
+    @IsCorrect BIT,
+    @PointsEarned INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Guardar respuesta del usuario
+    INSERT INTO UserAnswers (
+        GameSessionId,
+        QuestionId,
+        AnswerId,
+        TimeSpentSeconds,
+        IsCorrect,
+        PointsEarned,
+        AnsweredAt
+    )
+    VALUES (
+        @GameSessionId,
+        @QuestionId,
+        @AnswerId,
+        @TimeSpentSeconds,
+        @IsCorrect,
+        @PointsEarned,
+        GETDATE()
+    );
+
+    -- Actualizar score acumulado
+    UPDATE GameSessions
+    SET TotalScore = TotalScore + @PointsEarned
+    WHERE Id = @GameSessionId;
+
+    SELECT 1 AS Success;
+END
+GO
+
+CREATE OR ALTER PROC SP_GetGameSessionTotalScore
+    @GameSessionId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT ISNULL(SUM(PointsEarned),0) AS TotalScore
+    FROM UserAnswers
+    WHERE GameSessionId = @GameSessionId;
+END

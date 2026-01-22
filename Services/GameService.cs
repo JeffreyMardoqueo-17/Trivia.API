@@ -90,9 +90,9 @@ namespace TriviaGame.Api.Services
         {
             // Traer la respuesta correcta
             var correctAnswer = await _spExecutor.QuerySingleAsync<Answer>(
-                "SELECT TOP 1 * FROM Answers WHERE QuestionId = @QuestionId AND IsCorrect = 1",
-                new { QuestionId = questionId }
-            );
+      "SP_GetCorrectAnswerByQuestion",
+      new { QuestionId = questionId }
+  );
 
             bool isCorrect = correctAnswer != null && correctAnswer.Id == answerId;
             int pointsEarned = isCorrect ? 10 : 0; // cada respuesta correcta 10 puntos
@@ -122,11 +122,10 @@ namespace TriviaGame.Api.Services
 
             // Traer puntaje total de la sesión
             var totalScore = await _spExecutor.QuerySingleAsync<int>(
-                @"SELECT ISNULL(SUM(PointsEarned),0) 
-                  FROM UserAnswers 
-                  WHERE GameSessionId = @GameSessionId",
+                "SP_GetGameSessionTotalScore",
                 new { GameSessionId = gameSessionId }
             );
+
 
             // Traer ranking general
             var ranking = await _spExecutor.QueryAsync<RankingDto>("SP_GetRanking");
@@ -138,15 +137,15 @@ namespace TriviaGame.Api.Services
             };
         }
 
-      public async Task<GameSession?> GetGameSessionByIdAsync(int gameSessionId)
-{
-    var parameters = new { GameSessionId = gameSessionId };
+        public async Task<GameSession?> GetGameSessionByIdAsync(int gameSessionId)
+        {
+            var parameters = new { GameSessionId = gameSessionId };
 
-    return await _spExecutor.QuerySingleAsync<GameSession>(
-        "SP_GetGameSessionById",
-        parameters
-    );
-}
+            return await _spExecutor.QuerySingleAsync<GameSession>(
+                "SP_GetGameSessionById",
+                parameters
+            );
+        }
 
         /// <summary>
         /// Obtiene el ranking general del juego (usuarios ordenados por puntos acumulados)
