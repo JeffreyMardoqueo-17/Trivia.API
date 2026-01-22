@@ -155,6 +155,15 @@ namespace TriviaGame.Api.Services
             return await _spExecutor.QueryAsync<RankingItem>("SP_GetRanking");
         }
 
+        public async Task<GameResult> GetGameSessionResultAsync(int gameSessionId)
+        {
+            return await _spExecutor.QuerySingleAsync<GameResult>(
+                "SP_GetGameSessionResult",
+                new { GameSessionId = gameSessionId }
+            );
+        }
+
+
         #region Helper Models para mapping interno
         private class NextQuestionRaw
         {

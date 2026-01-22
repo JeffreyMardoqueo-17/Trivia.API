@@ -90,5 +90,18 @@ namespace TriviaGame.Api.Controllers
             var rankingDto = _mapper.Map<List<RankingDto>>(rankingInternal);
             return Ok(rankingDto);
         }
+        /// <summary>
+        /// Obtiene el resultado completo de una sesion de juego
+        /// </summary>
+        [HttpGet("{gameSessionId}/result")]
+        public async Task<ActionResult<GameResultDto>> GetResult(int gameSessionId)
+        {
+            var result = await _gameService.GetGameSessionResultAsync(gameSessionId);
+            if (result == null)
+                return NotFound();
+
+            return Ok(_mapper.Map<GameResultDto>(result));
+        }
+
     }
 }

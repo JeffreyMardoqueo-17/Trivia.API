@@ -268,3 +268,104 @@ BEGIN
     ORDER BY a.Id;
 END
 GO
+
+
+
+CREATE OR ALTER PROC SP_SaveUserAnswer
+    @GameSessionId INT,
+    @QuestionId INT,
+    @AnswerId INT,
+    @TimeSpentSeconds INT,
+    @IsCorrect BIT,
+    @PointsEarned INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Evitar doble respuesta por pregunta
+    IF EXISTS (
+        SELECT 1 
+        FROM UserAnswers 
+        WHERE GameSessionId = @GameSessionId
+          AND QuestionId = @QuestionId
+    )
+        RETURN;
+
+    -- Guardar respuesta
+    INSERT INTO UserAnswers (
+        GameSessionId,
+        QuestionId,
+        AnswerId,
+        TimeSpentSeconds,
+        IsCorrect,
+        PointsEarned,
+        AnsweredAt
+    )
+    VALUES (
+        @GameSessionId,
+        @QuestionId,
+        @AnswerId,
+        @TimeSpentSeconds,
+        @IsCorrect,
+        @PointsEarned,
+        GETDATE()
+    );
+
+    -- 🔴 ACUMULAR TIEMPO AQUÍ (NO AL FINAL)
+    UPDATE GameSessions
+    SET 
+        TotalScore = TotalScore + @PointsEarned,
+        TimeSpentSeconds = ISNULL(TimeSpentSeconds, 0) + @TimeSpentSeconds
+    WHERE Id = @GameSessionId;
+
+END
+GO
+CREATE OR ALTER PROC SP_SaveUserAnswer
+    @GameSessionId INT,
+    @QuestionId INT,
+    @AnswerId INT,
+    @TimeSpentSeconds INT,
+    @IsCorrect BIT,
+    @PointsEarned INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Evitar doble respuesta por pregunta
+    IF EXISTS (
+        SELECT 1 
+        FROM UserAnswers 
+        WHERE GameSessionId = @GameSessionId
+          AND QuestionId = @QuestionId
+    )
+        RETURN;
+
+    -- Guardar respuesta
+    INSERT INTO UserAnswers (
+        GameSessionId,
+        QuestionId,
+        AnswerId,
+        TimeSpentSeconds,
+        IsCorrect,
+        PointsEarned,
+        AnsweredAt
+    )
+    VALUES (
+        @GameSessionId,
+        @QuestionId,
+        @AnswerId,
+        @TimeSpentSeconds,
+        @IsCorrect,
+        @PointsEarned,
+        GETDATE()
+    );
+
+    -- 🔴 ACUMULAR TIEMPO AQUÍ (NO AL FINAL)
+    UPDATE GameSessions
+    SET 
+        TotalScore = TotalScore + @PointsEarned,
+        TimeSpentSeconds = ISNULL(TimeSpentSeconds, 0) + @TimeSpentSeconds
+    WHERE Id = @GameSessionId;
+
+END
+GO

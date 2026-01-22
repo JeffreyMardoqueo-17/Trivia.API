@@ -45,5 +45,10 @@ namespace TriviaGame.Api.Services.Interfaces
         Task<IEnumerable<GameService.RankingItem>> GetRankingAsync();
 
           Task<GameSession?> GetGameSessionByIdAsync(int gameSessionId);
+
+          //// <summary>
+          /// Obtiene el resultado completo de una sesión de juego
+          Task<GameResult> GetGameSessionResultAsync(int gameSessionId);
+
     }
 }

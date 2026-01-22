@@ -73,12 +73,13 @@ namespace TriviaGame.Api.Hubs
         /// <summary>
         /// Finaliza la sesión de juego y devuelve el puntaje final + ranking
         /// </summary>
-        public async Task<GameOverDto> EndGame(int gameSessionId)
+        public async Task<GameResultDto> EndGame(int gameSessionId)
         {
-            var gameOverInternal = await _gameService.EndGameSessionAsync(gameSessionId);
-            return _mapper.Map<GameOverDto>(gameOverInternal);
-        }
+            await _gameService.EndGameSessionAsync(gameSessionId);
 
+            var result = await _gameService.GetGameSessionResultAsync(gameSessionId);
+            return _mapper.Map<GameResultDto>(result);
+        }
         /// <summary>
         /// Devuelve el ranking general de todos los usuarios
         /// </summary>

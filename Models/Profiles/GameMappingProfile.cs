@@ -76,11 +76,14 @@ namespace TriviaGame.Api.Models.Profiles
                 .ForMember(dest => dest.TimeSpentSeconds, opt => opt.MapFrom(src => src.TimeSpentSeconds));
 
             // -------------------------------
-            // GameOverDto -> opcional (solo si necesitas mapear ranking + puntaje final)
+            // GameOverDto ->
             // -------------------------------
             CreateMap<(int totalScore, List<RankingDto> ranking), GameOverDto>()
                 .ForMember(dest => dest.TotalScore, opt => opt.MapFrom(src => src.totalScore))
                 .ForMember(dest => dest.Ranking, opt => opt.MapFrom(src => src.ranking));
+            //
+            // Game reuslt => Game resultdto => para mostrar el resultado final de una partida 
+            CreateMap<GameResult, GameResultDto>();
         }
     }
 }

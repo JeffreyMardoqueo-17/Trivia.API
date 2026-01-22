@@ -85,7 +85,7 @@
         Id INT IDENTITY(1,1) PRIMARY KEY,
         GameSessionId INT NOT NULL,
         QuestionId INT NOT NULL,
-        AnswerId INT NOT NULL,
+        AnswerId INT NULL,
 
         IsCorrect BIT NOT NULL,
         PointsEarned INT NOT NULL,
