@@ -1,14 +1,5 @@
 # 📌 Configuración de Connection String con Variables de Entorno
 
-Este documento describe **cómo se configuró y por qué** la conexión a base de datos del proyecto **TriviaGame.Api** usando **variables de entorno**, siguiendo buenas practicas profesionales.
-
----
-
-## 🧠 Decisión técnica clave
-
-Se utiliza **variables de entorno nativas del sistema operativo**, que son soportadas **por defecto** por el sistema de configuración de ASP.NET Core.
-
-> ⚠️ Importante: `.NET NO lee archivos .env automáticamente`. Aquí **NO** se usa `.env`, sino variables de entorno reales.
 
 ---
 
@@ -44,7 +35,8 @@ TriviaGame.Api
 │   ├── CategoryDto.cs
 │   ├── QuestionDto.cs
 │   └── AnswerDto.cs
-│
+├── Hub
+│   ├──GameHub
 ├── appsettings.json
 ├── Program.cs
 └── TriviaGame.Api.csproj
@@ -52,9 +44,9 @@ TriviaGame.Api
 
 ## Modelado de base de Datos
 
-dark click en el link '<https://dbdocs.io/jeffreymardoqueo260/TriviaGame>' , aqui se podra visualizar el mejor el modelado de la base de datos,con las tablas y el diagrama relacional 
+dark click en el link '<https://dbdocs.io/jeffreymardoqueo260/Trivia>', aqui se podra visualizar el mejor el modelado de la base de datos,con las tablas y el diagrama relacional 
 
-![alt text](image.png)
+![alt text](image-1.png)
 
 **Link:** <https://dbdocs.io/jeffreymardoqueo260/TriviaGame>
 **Password:** TriviaGame
@@ -68,7 +60,8 @@ dotnet add package Microsoft.Data.SqlClient
 dotnet add package AutoMapper --version 12.0.1
 dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection 
 dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.1
-
+dotnet add package  Microsoft.AspNetCore.SignalR 1.2.9
+dotnet add package Dapper 
 
 
 ```
@@ -82,6 +75,8 @@ dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.1
 - **AutoMapper.Extensions.Microsoft.DependencyInjection**: Integración de AutoMapper con el contenedor de dependencias de ASP.NET Core, permitiendo registrar perfiles y usar IMapper mediante inyección de dependencias.
 
 - **dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer** Esto es para usar JWT
+
+- **SignalR**: Este lo uso para el juego que simula websokets, para la repsuesta en tiempo real entre servidor y usaurio
 
 ---
 
@@ -179,6 +174,11 @@ public class DapperContext
 ```bash
 dotnet run
 ```
+o tambien el siguiente comando habre la app en usando https
+
+```bash
+dotnet run --launch-profile "https"
+```
 
 Si falla con:
 
@@ -200,7 +200,4 @@ Get-ChildItem Env:
 > Para enlistar las variables de entorno
 
 ---
-
-## 📎 Nota final
-
 

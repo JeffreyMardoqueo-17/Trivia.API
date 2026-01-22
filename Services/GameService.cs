@@ -185,7 +185,17 @@ namespace TriviaGame.Api.Services
                 new { GameSessionId = gameSessionId }
             );
         }
-
+        public async Task<IEnumerable<CategoryRankingItem>> GetCategoryRankingAsync(int categoryId, int top = 10)
+        {
+            return await _spExecutor.QueryAsync<CategoryRankingItem>(
+                "SP_GetCategoryRanking",
+                new
+                {
+                    CategoryId = categoryId,
+                    Top = top
+                }
+            );
+        }
 
         #region Helper Models para mapping interno
         private class NextQuestionRaw

@@ -68,6 +68,8 @@ namespace TriviaGame.Api.Models.Profiles
             //
             // Game reuslt => Game resultdto => para mostrar el resultado final de una partida 
             CreateMap<GameResult, GameResultDto>();
+
+             CreateMap<CategoryRankingItem, CategoryRankingDto>();
         }
     }
 }

@@ -49,6 +49,8 @@ namespace TriviaGame.Api.Services.Interfaces
           //// <summary>
           /// Obtiene el resultado completo de una sesión de juego
           Task<GameResult> GetGameSessionResultAsync(int gameSessionId);
+        //OBTEIEN EL TOP 10 CON MAS PUNTOS           
+    Task<IEnumerable<CategoryRankingItem>> GetCategoryRankingAsync(int categoryId, int top = 10);
 
     }
 }

@@ -274,3 +274,25 @@ BEGIN
     INNER JOIN Users u ON u.UserId = gs.UserId
     WHERE gs.GameSessionId = @GameSessionId
 END
+
+CREATE OR ALTER PROC SP_GetCategoryRanking
+    @CategoryId INT,
+    @Top INT = 10 -- top N, si 0 o NULL devuelve todos
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        u.Id AS UserId,
+        u.Gmail,
+        SUM(gs.TotalScore) AS TotalPoints
+    FROM Users u
+    INNER JOIN GameSessions gs ON gs.UserId = u.Id
+    WHERE u.IsActive = 1
+      AND gs.CategoryId = @CategoryId
+    GROUP BY u.Id, u.Gmail
+    ORDER BY TotalPoints DESC
+    OFFSET 0 ROWS
+    FETCH NEXT CASE WHEN @Top IS NULL OR @Top <= 0 THEN 1000000 ELSE @Top END ROWS ONLY;
+END
+GO

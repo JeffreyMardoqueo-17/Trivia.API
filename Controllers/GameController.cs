@@ -45,7 +45,7 @@ namespace TriviaGame.Api.Controllers
         /// <summary>
         /// Obtiene la siguiente pregunta de la sesion
         /// </summary>
-        
+
         [HttpGet("{gameSessionId}/next-question")]
         public async Task<ActionResult<QuestionDto>> GetNextQuestion(int gameSessionId)
         {
@@ -104,6 +104,21 @@ namespace TriviaGame.Api.Controllers
                 return NotFound();
 
             return Ok(_mapper.Map<GameResultDto>(result));
+        }
+        /// <summary>
+        /// Obtiene la tabla de clasificación de una categoría
+        /// </summary>
+        /// <param name="categoryId">Id de la categoría</param>
+        /// <param name="top">Número de usuarios a mostrar, default 10</param>
+        [HttpGet("ranking/category/{categoryId}")]
+        public async Task<ActionResult<List<CategoryRankingDto>>> GetCategoryRanking(
+            int categoryId,
+            [FromQuery] int top = 10
+        )
+        {
+            var ranking = await _gameService.GetCategoryRankingAsync(categoryId, top);
+            var dto = _mapper.Map<List<CategoryRankingDto>>(ranking);
+            return Ok(dto);
         }
 
     }
