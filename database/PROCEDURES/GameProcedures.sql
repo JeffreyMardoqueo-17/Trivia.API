@@ -1,3 +1,4 @@
+---------------------------PARA NICIAR UNA PARTIDA 
 CREATE OR ALTER PROC SP_StartGameSession
     @UserId INT,
     @CategoryId INT
@@ -9,15 +10,15 @@ BEGIN
 
     BEGIN TRY
 
-        -- Validar usuario activo
+        ------ Validar usuario activo
         IF NOT EXISTS (SELECT 1 FROM Users WHERE Id = @UserId AND IsActive = 1)
             GOTO Finish;
 
-        -- Validar categoría activa
+        ------ Validar categoría activa
         IF NOT EXISTS (SELECT 1 FROM Categories WHERE Id = @CategoryId AND IsActive = 1)
             GOTO Finish;
 
-        -- Validar mínimo de preguntas
+        ----- para ue salgan solo 3 preguntas
         IF (
             SELECT COUNT(*) 
             FROM Questions 
@@ -25,13 +26,13 @@ BEGIN
         ) < 3
             GOTO Finish;
 
-        -- Crear sesión
+        -----inicio la sesion solo  tomo el id del usaurio y la categoria que seleccione
         INSERT INTO GameSessions (UserId, CategoryId)
         VALUES (@UserId, @CategoryId);
 
         SET @GameSessionId = SCOPE_IDENTITY();
 
-        -- Asignar preguntas
+        ------- asigno las preguntass
         INSERT INTO GameSessionQuestions (GameSessionId, QuestionId)
         SELECT TOP 3 @GameSessionId, Id
         FROM Questions
@@ -42,12 +43,12 @@ BEGIN
     BEGIN CATCH
         SET @GameSessionId = 0;
     END CATCH
-
 Finish:
     SELECT @GameSessionId AS GameSessionId;
 END
 GO
 
+----------------------PARA OBTNER UNA SESION POR ID 
 CREATE OR ALTER PROC SP_GetGameSessionById
     @GameSessionId INT
 AS
@@ -60,6 +61,7 @@ BEGIN
 END
 GO
 
+------------------------------------aqii para obtener la repsuesta correcta de la pregunta 
 CREATE OR ALTER PROC SP_GetCorrectAnswerByQuestion
     @QuestionId INT
 AS
@@ -81,34 +83,34 @@ BEGIN
     SET NOCOUNT ON;
 
     /*
-    🔹 Función:
-        - Retorna la siguiente pregunta no respondida
-        - Trae sus 3 respuestas
-        - Pensado para flujo en tiempo real
+Función:
+        --- Retorna la siguiente pregunta no respondida
+        ----- Trae sus 3 respuestas
+        ------ Pensado para flujo en tiempo real
     */
 
     DECLARE @QuestionId INT = NULL;
 
-    -- Tomar próxima pregunta no respondida
+    ----- Obtener siguiente pregunta no respondida
     SELECT TOP 1 @QuestionId = q.Id
-    FROM GameSessionQuestions gsq
+    FROM GameSessionQuestions gsq 
     JOIN Questions q ON q.Id = gsq.QuestionId
     WHERE gsq.GameSessionId = @GameSessionId
-      AND NOT EXISTS (
-          SELECT 1 FROM UserAnswers ua 
-          WHERE ua.GameSessionId = @GameSessionId 
-            AND ua.QuestionId = q.Id
-      )
+        AND NOT EXISTS (
+            SELECT 1 FROM UserAnswers ua 
+            WHERE ua.GameSessionId = @GameSessionId 
+                AND ua.QuestionId = q.Id
+    )
     ORDER BY gsq.Id;
 
-    -- Si no hay pregunta, retorna NULL
+    ------ Si no hay pregunta, retorna NULL
     IF @QuestionId IS NULL
     BEGIN
         SELECT NULL AS QuestionId;
         RETURN;
     END
 
-    -- Retornar pregunta + respuestas
+    -------- Retornar pregunta + respuestas
     SELECT 
         q.Id AS QuestionId,
         q.Text AS QuestionText,
@@ -124,12 +126,13 @@ BEGIN
 END
 GO
 
+---- //-----------------------------PARA FINALIZAR LA PARTIDA
 CREATE OR ALTER PROC SP_EndGameSession
     @GameSessionId INT
 AS
 BEGIN
     SET NOCOUNT ON;
-
+    ----aqui solo acualizo la fecha para saber cuadno finalizo la partida
     UPDATE GameSessions
     SET EndedAt = GETDATE()
     WHERE Id = @GameSessionId
@@ -137,7 +140,7 @@ BEGIN
 END
 GO
 
-
+---------------------------PARA MOSTRAR EL RANKING GENERAL
 
 CREATE OR ALTER PROC SP_GetRanking
 AS
@@ -145,7 +148,7 @@ BEGIN
     SET NOCOUNT ON;
 
     /*
-    🔹 Función:
+Función:
         - Retorna usuarios ordenados por puntos acumulados
         - Se puede usar para leaderboard en SignalR
     */
@@ -160,12 +163,12 @@ BEGIN
 END
 GO
 
-END
 GO
+---------------------------PARA GUARDAR LA RESPUESTA DEL USUARIO ya sean todas vacias o las que contesto
 CREATE OR ALTER PROC SP_SaveUserAnswer
     @GameSessionId INT,
     @QuestionId INT,
-    @AnswerId INT,              -- puede venir 0 desde frontend
+    @AnswerId INT,   ------ puede venir 0 desde frontend si no respondio 
     @TimeSpentSeconds INT,
     @IsCorrect BIT,
     @PointsEarned INT
@@ -173,7 +176,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- 🔒 Evitar doble respuesta por pregunta
+    ----- Evitar doble respuesta por pregunta
     IF EXISTS (
         SELECT 1
         FROM UserAnswers
@@ -182,7 +185,7 @@ BEGIN
     )
         RETURN;
 
-    -- 💾 Guardar respuesta (0 => NULL)
+    ------   Guardar respuesta (0 => NULL)
     INSERT INTO UserAnswers (
         GameSessionId,
         QuestionId,
@@ -195,14 +198,14 @@ BEGIN
     VALUES (
         @GameSessionId,
         @QuestionId,
-        NULLIF(@AnswerId, 0),     -- 🔥 CLAVE ABSOLUTA
+        NULLIF(@AnswerId, 0),   ---- CLAVE ABSOLUTA
         @TimeSpentSeconds,
         @IsCorrect,
         @PointsEarned,
         GETDATE()
     );
 
-    -- ⏱️ + 🧮 Acumular tiempo y score EN TIEMPO REAL
+    ------    Acumular tiempo y score EN TIEMPO REAL
     UPDATE GameSessions
     SET
         TotalScore = ISNULL(TotalScore, 0) + @PointsEarned,
@@ -210,8 +213,6 @@ BEGIN
     WHERE Id = @GameSessionId;
 END
 GO
-
-
 
 --------------------------PARA MOSTRAR EL RESULTADO DE LA PARTIDA
 CREATE OR ALTER PROC SP_GetGameSessionResult
@@ -222,7 +223,7 @@ BEGIN
 
     DECLARE @TotalQuestions INT;
 
-    -- Total de preguntas de la sesión
+    --------- para traer el total de preguntas de la sesion
     SELECT @TotalQuestions = COUNT(*)
     FROM GameSessionQuestions
     WHERE GameSessionId = @GameSessionId;
@@ -232,16 +233,16 @@ BEGIN
         gs.TotalScore,
         @TotalQuestions AS TotalQuestions,
 
-        -- Respondidas
+        ----- Respondidas
         COUNT(ua.Id) AS AnsweredQuestions,
 
-        -- Correctas
+        ----- Correctas
         SUM(CASE WHEN ua.IsCorrect = 1 THEN 1 ELSE 0 END) AS CorrectAnswers,
 
         -- Incorrectas (incluye no respondidas)
         @TotalQuestions - SUM(CASE WHEN ua.IsCorrect = 1 THEN 1 ELSE 0 END) AS IncorrectAnswers,
 
-        -- No respondidas
+        ------ No respondidas
         SUM(CASE WHEN ua.AnswerId IS NULL THEN 1 ELSE 0 END) AS NotAnswered
 
     FROM GameSessions gs
@@ -251,6 +252,8 @@ BEGIN
     GROUP BY gs.Id, gs.TotalScore;
 END
 GO
+
+---------------------------PARA MOSTRAR LA INFO DE LA PARTIDA
 CREATE PROC SP_GetGameSessionInfo
     @GameSessionId INT
 AS
@@ -262,20 +265,10 @@ BEGIN
     INNER JOIN Users u ON u.UserId = gs.UserId
     WHERE gs.GameSessionId = @GameSessionId
 END
+GO
 
-CREATE PROC SP_GetGameSessionInfo
-    @GameSessionId INT
-AS
-BEGIN
-    SELECT 
-        u.UserId,
-        u.UserName
-    FROM GameSessions gs
-    INNER JOIN Users u ON u.UserId = gs.UserId
-    WHERE gs.GameSessionId = @GameSessionId
-END
 
-CREATE OR ALTER PROC SP_GetCategoryRanking
+CREATE OR ALTER PROC SP_GetCategoryRanking -----AQUI PARA MOSTRAR EL RANKING POR CATEGORIA QUIEN LLEVA MAS PUNTOS OBVIOO
     @CategoryId INT,
     @Top INT = 10 -- top N, si 0 o NULL devuelve todos
 AS
