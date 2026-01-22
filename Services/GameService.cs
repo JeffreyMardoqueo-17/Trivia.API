@@ -8,7 +8,7 @@ using TriviaGame.Api.Services.Interfaces;
 
 namespace TriviaGame.Api.Services
 {
-    public class GameService  : IGameService
+    public class GameService : IGameService
     {
         private readonly SpExecutor _spExecutor;
 
@@ -23,19 +23,20 @@ namespace TriviaGame.Api.Services
         /// </summary>
         public async Task<int> StartGameSessionAsync(int userId, int categoryId)
         {
-            var parameters = new DynamicParameters();
-            parameters.Add("@UserId", userId);
-            parameters.Add("@CategoryId", categoryId);
+            var parameters = new
+            {
+                UserId = userId,
+                CategoryId = categoryId
+            };
 
-            var result = await _spExecutor.QuerySingleAsync<Dictionary<string, object>>(
-                "SP_StartGameSession",
-                parameters
-            );
+            var result = await _spExecutor.QuerySingleAsync<StartGameSessionResult>(
+            "SP_StartGameSession",
+            parameters
+        );
 
-            if (result != null && result.ContainsKey("GameSessionId"))
-                return (int)result["GameSessionId"];
-            return 0;
+            return result?.GameSessionId ?? 0;
         }
+
 
         /// <summary>
         /// Obtiene la siguiente pregunta no respondida junto con sus respuestas
@@ -85,7 +86,7 @@ namespace TriviaGame.Api.Services
             return question;
         }
 
-     public async Task<AnswerResultDto> SaveUserAnswerAsync(int gameSessionId, int questionId, int answerId, int timeSpentSeconds)
+        public async Task<AnswerResultDto> SaveUserAnswerAsync(int gameSessionId, int questionId, int answerId, int timeSpentSeconds)
         {
             // Traer la respuesta correcta
             var correctAnswer = await _spExecutor.QuerySingleAsync<Answer>(
@@ -136,12 +137,14 @@ namespace TriviaGame.Api.Services
                 Ranking = ranking.ToList()
             };
         }
-    
-    public async Task<GameSession?> GetGameSessionByIdAsync(int gameSessionId)
+
+      public async Task<GameSession?> GetGameSessionByIdAsync(int gameSessionId)
 {
+    var parameters = new { GameSessionId = gameSessionId };
+
     return await _spExecutor.QuerySingleAsync<GameSession>(
-        @"SELECT * FROM GameSessions WHERE Id = @GameSessionId",
-        new { GameSessionId = gameSessionId }
+        "SP_GetGameSessionById",
+        parameters
     );
 }
 

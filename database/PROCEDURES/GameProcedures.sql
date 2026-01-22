@@ -1,5 +1,3 @@
-
-
 CREATE OR ALTER PROC SP_StartGameSession
     @UserId INT,
     @CategoryId INT
@@ -7,36 +5,33 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    /*
-    🔹 Función:
-        - Crear sesión de juego para el usuario
-        - Seleccionar 3 preguntas aleatorias de la categoría
-        - No bloquear errores, retornando NULL o 0 si algo falla
-        - Pensado para ser usado en SignalR
-    */
-
     DECLARE @GameSessionId INT = 0;
 
     BEGIN TRY
+
         -- Validar usuario activo
         IF NOT EXISTS (SELECT 1 FROM Users WHERE Id = @UserId AND IsActive = 1)
-            RETURN;
+            GOTO Finish;
 
         -- Validar categoría activa
         IF NOT EXISTS (SELECT 1 FROM Categories WHERE Id = @CategoryId AND IsActive = 1)
-            RETURN;
+            GOTO Finish;
 
-        -- Validar que existan al menos 3 preguntas
-        IF (SELECT COUNT(*) FROM Questions WHERE CategoryId = @CategoryId AND IsActive = 1) < 3
-            RETURN;
+        -- Validar mínimo de preguntas
+        IF (
+            SELECT COUNT(*) 
+            FROM Questions 
+            WHERE CategoryId = @CategoryId AND IsActive = 1
+        ) < 3
+            GOTO Finish;
 
-        -- Crear la sesión de juego
+        -- Crear sesión
         INSERT INTO GameSessions (UserId, CategoryId)
         VALUES (@UserId, @CategoryId);
 
         SET @GameSessionId = SCOPE_IDENTITY();
 
-        -- Asignar 3 preguntas aleatorias a la sesión
+        -- Asignar preguntas
         INSERT INTO GameSessionQuestions (GameSessionId, QuestionId)
         SELECT TOP 3 @GameSessionId, Id
         FROM Questions
@@ -45,14 +40,26 @@ BEGIN
 
     END TRY
     BEGIN CATCH
-        -- No detener ejecución
         SET @GameSessionId = 0;
     END CATCH
 
-    -- Retornar ID de sesión (0 si no se pudo crear)
+Finish:
     SELECT @GameSessionId AS GameSessionId;
 END
 GO
+
+CREATE OR ALTER PROC SP_GetGameSessionById
+    @GameSessionId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT *
+    FROM GameSessions
+    WHERE Id = @GameSessionId;
+END
+GO
+
 
 
 CREATE OR ALTER PROC SP_GetNextQuestion
