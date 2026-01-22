@@ -8,7 +8,7 @@ namespace TriviaGame.Api.Common
     public class BusinessException : Exception
     {
         public int StatusCode { get; }
-
+        // Constructor
         public BusinessException(string message, int statusCode = 400)
             : base(message)
         {

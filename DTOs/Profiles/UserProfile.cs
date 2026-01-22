@@ -17,7 +17,7 @@ namespace TriviaGame.Api.DTOs.Profiles
         CreateMap<User, UserResponseDto>();
 
         // Para crear un usuario
-        // Aquí mapeamos solo Gmail; Password ya lo manejamos en el service para hash + salt
+        // aqui mapeo solo Gmail; Password ya lo manejo en el service para hash + salt
         CreateMap<RegisterUserRequestDto, User>()
             .ForMember(dest => dest.Gmail, opt => opt.MapFrom(src => src.Gmail))
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())

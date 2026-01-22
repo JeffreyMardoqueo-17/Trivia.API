@@ -10,9 +10,7 @@ namespace TriviaGame.Api.Models.Profiles
     {
         public GameMappingProfile()
         {
-            // -------------------------------
             // GameSession -> GameSessionDto
-            // -------------------------------
             CreateMap<GameSession, GameSessionDto>()
                 .ForMember(dest => dest.GameSessionId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
@@ -21,24 +19,18 @@ namespace TriviaGame.Api.Models.Profiles
                 .ForMember(dest => dest.TimeSpentSeconds, opt => opt.MapFrom(src => src.TimeSpentSeconds))
                 .ForMember(dest => dest.StartedAt, opt => opt.MapFrom(src => src.StartedAt));
 
-            // -------------------------------
             // Categories -> CategoryDto
-            // -------------------------------
             CreateMap<Categories, CategoryDto>()
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.TotalQuestions, opt => opt.MapFrom(src => src.Questions.Count));
 
-            // -------------------------------
             // Answer -> AnswerDto
-            // -------------------------------
             CreateMap<Answer, AnswerDto>()
                 .ForMember(dest => dest.AnswerId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.AnswerText, opt => opt.MapFrom(src => src.Text));
 
-            // -------------------------------
             // Question -> QuestionDto
             // Incluye respuestas filtrando IsActive (opcional)
-            // -------------------------------
             CreateMap<Question, QuestionDto>()
                 .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.Text))
@@ -46,10 +38,8 @@ namespace TriviaGame.Api.Models.Profiles
                 .ForMember(dest => dest.TimeLimitSeconds, opt => opt.Ignore()) // Lo llenamos desde GameSessionQuestion
                 .ForMember(dest => dest.Answers, opt => opt.MapFrom(src => src.Answers));
 
-            // -------------------------------
             // GameService.QuestionWithAnswers -> QuestionDto
             // Para SPs que retornan preguntas + respuestas
-            // -------------------------------
             CreateMap<GameService.QuestionWithAnswers, QuestionDto>()
                 .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.QuestionId))
                 .ForMember(dest => dest.QuestionText, opt => opt.MapFrom(src => src.QuestionText))
@@ -57,27 +47,21 @@ namespace TriviaGame.Api.Models.Profiles
                 .ForMember(dest => dest.TimeLimitSeconds, opt => opt.MapFrom(src => src.TimeLimitSeconds))
                 .ForMember(dest => dest.Answers, opt => opt.MapFrom(src => src.Answers));
 
-            // -------------------------------
             // GameService.RankingItem -> RankingDto
-            // -------------------------------
             CreateMap<GameService.RankingItem, RankingDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.Gmail, opt => opt.MapFrom(src => src.Gmail))
                 .ForMember(dest => dest.TotalPoints, opt => opt.MapFrom(src => src.TotalPoints));
 
-            // -------------------------------
             // SubmitAnswerDto -> UserAnswer (opcional)
-            // Solo si quieres mapear respuesta del cliente a modelo interno
-            // -------------------------------
+            //solo para apear la respuesta del cliente al modelo interno
             CreateMap<SubmitAnswerDto, UserAnswer>()
                 .ForMember(dest => dest.GameSessionId, opt => opt.MapFrom(src => src.GameSessionId))
                 .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.QuestionId))
                 .ForMember(dest => dest.AnswerId, opt => opt.MapFrom(src => src.AnswerId))
                 .ForMember(dest => dest.TimeSpentSeconds, opt => opt.MapFrom(src => src.TimeSpentSeconds));
 
-            // -------------------------------
             // GameOverDto ->
-            // -------------------------------
             CreateMap<(int totalScore, List<RankingDto> ranking), GameOverDto>()
                 .ForMember(dest => dest.TotalScore, opt => opt.MapFrom(src => src.totalScore))
                 .ForMember(dest => dest.Ranking, opt => opt.MapFrom(src => src.ranking));

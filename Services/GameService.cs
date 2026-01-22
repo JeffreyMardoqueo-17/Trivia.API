@@ -117,23 +117,46 @@ namespace TriviaGame.Api.Services
 
         public async Task<GameOverDto> EndGameSessionAsync(int gameSessionId)
         {
-            // Finalizar la sesión
-            await _spExecutor.QuerySingleAsync<object>("SP_EndGameSession", new { GameSessionId = gameSessionId });
+            // 1inalizar sesión
+            await _spExecutor.QuerySingleAsync<object>(
+                "SP_EndGameSession",
+                new { GameSessionId = gameSessionId }
+            );
 
-            // Traer puntaje total de la sesión
+            // 2️btener info del jugador de la sesión
+            var sessionInfo = await _spExecutor.QuerySingleAsync<GameSessionInfoDto>(
+                "SP_GetGameSessionInfo",
+                new { GameSessionId = gameSessionId }
+            );
+
+            // 3Puntaje total
             var totalScore = await _spExecutor.QuerySingleAsync<int>(
                 "SP_GetGameSessionTotalScore",
                 new { GameSessionId = gameSessionId }
             );
 
+            //  Ranking general
+            var ranking = (await _spExecutor
+                .QueryAsync<RankingDto>("SP_GetRanking"))
+                .ToList();
 
-            // Traer ranking general
-            var ranking = await _spExecutor.QueryAsync<RankingDto>("SP_GetRanking");
+            //  Calcular posición
+            var position = ranking
+                .FindIndex(r => r.UserId == sessionInfo.UserId) + 1;
 
+            //  Top 3
+            var isTop3 = position > 0 && position <= 3;
+
+            // 7️⃣ DTO FINAL
             return new GameOverDto
             {
+                GameSessionId = gameSessionId,
+                UserId = sessionInfo.UserId,
+                UserName = sessionInfo.UserName,
                 TotalScore = totalScore,
-                Ranking = ranking.ToList()
+                Position = position,
+                IsTop3 = isTop3,
+                Ranking = ranking
             };
         }
 

@@ -26,7 +26,7 @@ namespace TriviaGame.Api.Controllers
         }
 
         [HttpGet]
-        // [Authorize]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<CategoryResponseDTO>>> GetAllCategories()
         {
             var categories = await _categoriesService.GetAllCategoriesAsync();
@@ -37,7 +37,7 @@ namespace TriviaGame.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        // [Authorize]
+        [Authorize]
         public async Task<ActionResult<CategoryResponseDTO>> GetCategoryById(int id)
         {
             var category = await _categoriesService.GetCategoryByIdAsync(id);

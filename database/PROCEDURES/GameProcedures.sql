@@ -251,3 +251,26 @@ BEGIN
     GROUP BY gs.Id, gs.TotalScore;
 END
 GO
+CREATE PROC SP_GetGameSessionInfo
+    @GameSessionId INT
+AS
+BEGIN
+    SELECT 
+        u.UserId,
+        u.UserName
+    FROM GameSessions gs
+    INNER JOIN Users u ON u.UserId = gs.UserId
+    WHERE gs.GameSessionId = @GameSessionId
+END
+
+CREATE PROC SP_GetGameSessionInfo
+    @GameSessionId INT
+AS
+BEGIN
+    SELECT 
+        u.UserId,
+        u.UserName
+    FROM GameSessions gs
+    INNER JOIN Users u ON u.UserId = gs.UserId
+    WHERE gs.GameSessionId = @GameSessionId
+END

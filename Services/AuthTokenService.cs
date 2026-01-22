@@ -7,6 +7,10 @@ using TriviaGame.Api.Services.Interfaces;
 
 namespace TriviaGame.Api.Services
 {
+    /// <summary>
+    /// Servicio para la generacion de tokens JWT
+    /// </summary> <summary>
+    /// 
     public class AuthTokenService : IAuthTokenService
     {
         private readonly IConfiguration _config;

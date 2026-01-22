@@ -43,7 +43,7 @@ namespace TriviaGame.Api.Controllers
             var response = new UserResponseDto
             {
                 Gmail = dto.Gmail,
-                Success = !exists,           // true si no existía y se creo correctamente
+                Success = !exists,           // true si no existe y se creo correctamente
                 Message = message,
                 CreatedAt = DateTime.UtcNow
             };

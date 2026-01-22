@@ -76,7 +76,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
 
-        // 🔥 ESTO ES LO QUE TE FALTABA
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -97,10 +96,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddSignalR();
 
-Console.WriteLine($"JWT KEY: {jwtKey}");
-Console.WriteLine($"ISSUER: {issuer}");
-Console.WriteLine($"AUDIENCE: {audience}");
-Console.WriteLine($"ConnectionString: {builder.Configuration.GetConnectionString("DefaultConnection")}");
+
+// Console.WriteLine($"JWT KEY: {jwtKey}");
+// Console.WriteLine($"ISSUER: {issuer}");
+// Console.WriteLine($"AUDIENCE: {audience}");
+// Console.WriteLine($"ConnectionString: {builder.Configuration.GetConnectionString("DefaultConnection")}");
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

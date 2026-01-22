@@ -9,7 +9,8 @@ namespace TriviaGame.Api.Models
     /// Representa a cada usaurio del sistema
     /// @param Gmail: Correo electronico del usuario
     /// @param PasswordHash: Hash de la contrasena del usuario
-    /// @param PasswordSalt: Salt utilizado para hashear la contrasena // lo genero cuando el usuario se registra
+    /// @param PasswordSalt: Salt utilizado para hashear la contrasena /
+    /// / lo genero cuando el usuario se registra
     /// </summary>
     public class User
     {

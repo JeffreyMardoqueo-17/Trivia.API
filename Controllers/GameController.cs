@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TriviaGame.Api.Models.DTOs;
 using TriviaGame.Api.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TriviaGame.Api.Controllers
 {
@@ -20,17 +21,18 @@ namespace TriviaGame.Api.Controllers
         }
 
         /// <summary>
-        /// Inicia una nueva sesión de juego para un usuario y categoría
+        /// Inicia una nueva sesion de juego para un usuario y categ
         /// </summary>
+        /// 
         [HttpPost("start")]
         public async Task<ActionResult<GameSessionDto>> Start([FromQuery] int userId, [FromQuery] int categoryId)
         {
-            // Llamamos al service para crear la sesión
+            // Llamamos al service para crear la sesion
             var gameSessionId = await _gameService.StartGameSessionAsync(userId, categoryId);
             if (gameSessionId == 0)
                 return BadRequest(new { Message = "No se pudo iniciar la sesión. Verifica usuario y categoría." });
 
-            // Obtenemos la sesión completa para mapear
+            // Obtenemos la sesion completa para mapear
             var gameSession = await _gameService.GetGameSessionByIdAsync(gameSessionId);
             if (gameSession == null)
                 return NotFound(new { Message = "Sesión no encontrada." });
@@ -41,8 +43,9 @@ namespace TriviaGame.Api.Controllers
         }
 
         /// <summary>
-        /// Obtiene la siguiente pregunta de la sesión
+        /// Obtiene la siguiente pregunta de la sesion
         /// </summary>
+        
         [HttpGet("{gameSessionId}/next-question")]
         public async Task<ActionResult<QuestionDto>> GetNextQuestion(int gameSessionId)
         {
@@ -71,7 +74,7 @@ namespace TriviaGame.Api.Controllers
         }
 
         /// <summary>
-        /// Finaliza la sesión de juego
+        /// Finaliza la sesion de juego
         /// </summary>
         [HttpPost("{gameSessionId}/end")]
         public async Task<ActionResult<GameOverDto>> End(int gameSessionId)

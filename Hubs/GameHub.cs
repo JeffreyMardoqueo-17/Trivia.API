@@ -25,15 +25,14 @@ namespace TriviaGame.Api.Hubs
             var gameSessionId = await _gameService.StartGameSessionAsync(userId, categoryId);
             if (gameSessionId == 0) return null;
 
-            // Obtenemos la sesión para mapear
-            // Si tu SP StartGameSession ya devuelve todos los campos, úsalo; sino crea un método en service para obtener GameSession
-            // Aquí asumimos que el service tiene un método GetGameSessionByIdAsync
+            //obetengo la sesion para mapeas
+            //aqui uso el SP StarGame session qeu devuelve todo los campos 
             var gameSession = await _gameService.GetGameSessionByIdAsync(gameSessionId);
             return _mapper.Map<GameSessionDto>(gameSession);
         }
 
         /// <summary>
-        /// Obtiene la siguiente pregunta de la sesión en curso
+        /// /// /// Obtiene la siguiente pregunta de la sesión en curso
         /// </summary>
         public async Task<QuestionDto?> GetNextQuestion(int gameSessionId)
         {
@@ -51,7 +50,7 @@ namespace TriviaGame.Api.Hubs
         /// </summary>
         public async Task<AnswerResultDto> SubmitAnswer(SubmitAnswerDto submitAnswer)
         {
-            // Guardamos la respuesta usando el service
+            // guardo la respuesta usando el service
             var result = await _gameService.SaveUserAnswerAsync(
                 submitAnswer.GameSessionId,
                 submitAnswer.QuestionId,
@@ -59,7 +58,7 @@ namespace TriviaGame.Api.Hubs
                 submitAnswer.TimeSpentSeconds
             );
 
-            // Mapear a DTO para enviar al cliente
+            // mapeo a DTO para enviar al cliente
             var answerResult = new AnswerResultDto
             {
                 IsCorrect = result.IsCorrect,
@@ -71,7 +70,7 @@ namespace TriviaGame.Api.Hubs
         }
 
         /// <summary>
-        /// Finaliza la sesión de juego y devuelve el puntaje final + ranking
+        /// Finaliza la sesion de juego y devuelve el puntaje final + ranking
         /// </summary>
         public async Task<GameResultDto> EndGame(int gameSessionId)
         {
