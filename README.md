@@ -1,14 +1,5 @@
 # 📌 Configuración de Connection String con Variables de Entorno
 
-Este documento describe **cómo se configuró y por qué** la conexión a base de datos del proyecto **TriviaGame.Api** usando **variables de entorno**, siguiendo buenas practicas profesionales.
-
----
-
-## 🧠 Decisión técnica clave
-
-Se utiliza **variables de entorno nativas del sistema operativo**, que son soportadas **por defecto** por el sistema de configuración de ASP.NET Core.
-
-> ⚠️ Importante: `.NET NO lee archivos .env automáticamente`. Aquí **NO** se usa `.env`, sino variables de entorno reales.
 
 ---
 
@@ -44,11 +35,21 @@ TriviaGame.Api
 │   ├── CategoryDto.cs
 │   ├── QuestionDto.cs
 │   └── AnswerDto.cs
-│
+├── Hub
+│   ├──GameHub
 ├── appsettings.json
 ├── Program.cs
 └── TriviaGame.Api.csproj
 ```
+
+## Modelado de base de Datos
+
+dark click en el link '<https://dbdocs.io/jeffreymardoqueo260/Trivia>', aqui se podra visualizar el mejor el modelado de la base de datos,con las tablas y el diagrama relacional 
+
+![alt text](image-1.png)
+
+**Link:** <https://dbdocs.io/jeffreymardoqueo260/TriviaGame>
+**Password:** TriviaGame
 
 ---
 
@@ -59,7 +60,8 @@ dotnet add package Microsoft.Data.SqlClient
 dotnet add package AutoMapper --version 12.0.1
 dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection 
 dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.1
-
+dotnet add package  Microsoft.AspNetCore.SignalR 1.2.9
+dotnet add package Dapper 
 
 
 ```
@@ -73,6 +75,8 @@ dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.1
 - **AutoMapper.Extensions.Microsoft.DependencyInjection**: Integración de AutoMapper con el contenedor de dependencias de ASP.NET Core, permitiendo registrar perfiles y usar IMapper mediante inyección de dependencias.
 
 - **dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer** Esto es para usar JWT
+
+- **SignalR**: Este lo uso para el juego que simula websokets, para la repsuesta en tiempo real entre servidor y usaurio
 
 ---
 
@@ -99,11 +103,14 @@ $env:ConnectionStrings__DefaultConnection="Server=Server;Database=NmbreBD;Truste
 Estas son las variables apra que funcione JWT
 
 ```powershell
-$env:Jwt__Key="ESTE_ES_UN_SECRET_LARGO_Y_DIFICIL_DE_ADIVINAR"
+
+$env:Jwt__Key="contra super segura"
 $env:Jwt__Issuer="TriviaGame.Api"
 $env:Jwt__Audience="TriviaGame.Frontend"
 $env:Jwt__ExpireMinutes="60"
 
+
+$env:ConnectionStrings__DefaultConnection="Server=server;Database=bd;Trusted_Connectionbase=db;Trusted_Connection=True;TrustServerCertificate=True;"
 ```
 
 ---
@@ -167,6 +174,11 @@ public class DapperContext
 ```bash
 dotnet run
 ```
+o tambien el siguiente comando habre la app en usando https
+
+```bash
+dotnet run --launch-profile "https"
+```
 
 Si falla con:
 
@@ -189,4 +201,3 @@ Get-ChildItem Env:
 
 ---
 
-## 📎 Nota final

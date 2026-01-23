@@ -32,20 +32,20 @@ namespace TriviaGame.Api.Middleware
 
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            // ===== 1️⃣ CAPTURA CONTEXTO DEL REQUEST =====
+            // ---------------------CAPTURA CONTEXTO DEL REQUET
             var request = context.Request;
 
             var endpoint = $"{request.Method} {request.Path}";
             var queryString = request.QueryString.ToString();
             var traceId = context.TraceIdentifier;
 
-            // ===== USUARIO (SI EXISTE) =====
+            // SI HAY USUARIO AUTENTICADO OBTENER INFO QUE ES LO QE MUESTR
             var userId = context.User?.Claims?
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             var userName = context.User?.Identity?.Name;
 
-            // ===== LOG COMPLETO (observacion completa ) =====
+            //log completo con esto identifico mas rapido algun problema en el backend 
             _logger.LogError(ex,
                 "Unhandled exception occurred. " +
                 "Endpoint: {Endpoint} | Query: {Query} | UserId: {UserId} | UserName: {UserName} | TraceId: {TraceId}",
@@ -56,7 +56,7 @@ namespace TriviaGame.Api.Middleware
                 traceId
             );
 
-            // =====  RESPUESTA HTTP =====
+            // respuesta hhtps
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = GetStatusCode(ex);
 
@@ -72,6 +72,7 @@ namespace TriviaGame.Api.Middleware
             await context.Response.WriteAsync(json);
         }
 
+            //aqui yo pongo los tipo de errores que puede mandar y el mensaje que signfica ese error 
         private static int GetStatusCode(Exception ex)
         {
             return ex switch

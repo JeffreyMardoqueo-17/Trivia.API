@@ -16,10 +16,12 @@ namespace TriviaGame.Api.Services
     {
         private readonly SpExecutor _spExecutor;
 
+
         public UserService(SpExecutor spExecutor)
         {
             _spExecutor = spExecutor;
         }
+
 
         /// <summary>
         /// Crea un usuario usando SP_CreateUser
@@ -112,5 +114,6 @@ namespace TriviaGame.Api.Services
             var result = await _spExecutor.ExecuteWithOutputAsync("SP_DeactivateUser", parameters);
             return (result.Flag, result.Message);
         }
+
     }
 }

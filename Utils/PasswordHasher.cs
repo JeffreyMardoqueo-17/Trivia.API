@@ -39,3 +39,4 @@ namespace TriviaGame.Api.Utils
         }
     }
 }
+

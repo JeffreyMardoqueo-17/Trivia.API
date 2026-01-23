@@ -64,7 +64,7 @@ BEGIN
         RETURN;
     END
 
-    -- Actualizar contraseña
+    ---- Actualizar contraseña
     UPDATE Users
     SET 
         PasswordHash = @NewPasswordHash,
@@ -110,7 +110,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Verifica que el usuario exista y esté activo
+    ------- Verifica que el usuario exista y esté activo
     IF NOT EXISTS (
         SELECT 1 
         FROM Users
@@ -123,7 +123,7 @@ BEGIN
         RETURN;
     END
 
-    -- Desactiva al usuario
+    ----------- Desactiva al usuario
     UPDATE Users
     SET IsActive = 0
     WHERE Id = @UserId;
