@@ -254,16 +254,16 @@ END
 GO
 
 ---------------------------PARA MOSTRAR LA INFO DE LA PARTIDA
-CREATE PROC SP_GetGameSessionInfo
+CREATE OR ALTER PROC SP_GetGameSessionInfo
     @GameSessionId INT
 AS
 BEGIN
     SELECT 
-        u.UserId,
-        u.UserName
+        u.Id,
+        u.Gmail
     FROM GameSessions gs
-    INNER JOIN Users u ON u.UserId = gs.UserId
-    WHERE gs.GameSessionId = @GameSessionId
+    INNER JOIN Users u ON u.Id = gs.UserId
+    WHERE gs.Id = @GameSessionId
 END
 GO
 
