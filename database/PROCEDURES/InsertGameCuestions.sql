@@ -104,3 +104,105 @@ FROM Questions q
 JOIN Answers a ON a.QuestionId = q.Id
 WHERE q.CategoryId = 2
 ORDER BY q.Id;
+
+GO
+-------------------------------PREGUNTAS DE CARRORS
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Cuál es la marca de carros conocida por el modelo Mustang?');
+
+DECLARE @Q1 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q1, 'Ford', 1),
+(@Q1, 'Chevrolet', 0),
+(@Q1, 'Dodge', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Qué tipo de motor usan la mayoría de los carros deportivos?');
+
+DECLARE @Q2 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q2, 'Motor V8', 1),
+(@Q2, 'Motor diésel', 0),
+(@Q2, 'Motor eléctrico', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Cuál de estos carros es eléctrico?');
+
+DECLARE @Q3 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q3, 'Tesla Model S', 1),
+(@Q3, 'Toyota Corolla', 0),
+(@Q3, 'Honda Civic', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Qué significa ABS en un carro?');
+
+DECLARE @Q4 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q4, 'Sistema de frenos antibloqueo', 1),
+(@Q4, 'Control de aire', 0),
+(@Q4, 'Sistema de transmisión automática', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Cuál es el carro más vendido del mundo?');
+
+DECLARE @Q5 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q5, 'Toyota Corolla', 1),
+(@Q5, 'Ford F-150', 0),
+(@Q5, 'Honda Civic', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Qué parte del carro mide la velocidad?');
+
+DECLARE @Q6 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q6, 'Velocímetro', 1),
+(@Q6, 'Tachómetro', 0),
+(@Q6, 'Odómetro', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Qué combustible usan la mayoría de los carros?');
+
+DECLARE @Q7 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q7, 'Gasolina', 1),
+(@Q7, 'Agua', 0),
+(@Q7, 'Aceite', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Cuál es la marca de carros de lujo italiana famosa por sus deportivos?');
+
+DECLARE @Q8 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q8, 'Ferrari', 1),
+(@Q8, 'Kia', 0),
+(@Q8, 'Hyundai', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Qué parte del carro convierte la energía del motor en movimiento?');
+
+DECLARE @Q9 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q9, 'Transmisión', 1),
+(@Q9, 'Radiador', 0),
+(@Q9, 'Freno de mano', 0);
+
+INSERT INTO Questions (CategoryId, Text)
+VALUES (1, '¿Cuál de estos carros es famoso por su sistema híbrido?');
+
+DECLARE @Q10 INT = SCOPE_IDENTITY();
+
+INSERT INTO Answers (QuestionId, Text, IsCorrect) VALUES
+(@Q10, 'Toyota Prius', 1),
+(@Q10, 'Mazda RX-7', 0),
+(@Q10, 'Chevrolet Camaro', 0);
